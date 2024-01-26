@@ -119,7 +119,7 @@ public:
     static const int KEY_HOME      = 1004;
     static const int KEY_END       = 1005;
     static const int KEY_PAGE_UP   = 1006;
-    static const int KEY_PAGE_DOWN = 1006;
+    static const int KEY_PAGE_DOWN = 1007;
     static const int KEY_INSERT    = 1008;
     static const int KEY_DELETE    = 1008;
     static const int KEY_F0        = 1020;
@@ -218,7 +218,6 @@ int Menu::event_loop(bool enable_escape_sequences)
             sleep_us(1000);
         }
     }
-
     return return_code;
 }
 
@@ -570,6 +569,26 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
     case KEY_RIGHT:
         ac_ = std::min(ac_+1, 15);
+        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        set_rc_value();
+        break;
+    case KEY_PAGE_UP:
+        ar_ = 0;
+        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        set_rc_value();
+        break;
+    case KEY_PAGE_DOWN:
+        ar_ = 15;
+        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        set_rc_value();
+        break;
+    case KEY_HOME:
+        ac_ = 0;
+        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        set_rc_value();
+        break;
+    case KEY_END:
+        ac_ = 15;
         gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
         set_rc_value();
         break;
