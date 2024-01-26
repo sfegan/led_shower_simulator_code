@@ -14,7 +14,7 @@ public:
     virtual bool process_key_press(int key, int key_count, int& return_code) = 0;
     virtual bool process_timeout(int& return_code) = 0;
 
-    int event_loop();
+    int event_loop(bool enable_escape_sequences = true);
 
     static int puts_raw_nonl(const char* s) {
         for (size_t i = 0; s[i]; ++i) {
@@ -111,15 +111,40 @@ public:
         if(!title_style.empty())puts_raw_nonl("\033[0m");
         return tw == int(title.size());
     }
+
+    static const int KEY_UP        = 1000;
+    static const int KEY_DOWN      = 1001;
+    static const int KEY_RIGHT     = 1002;
+    static const int KEY_LEFT      = 1003;
+    static const int KEY_HOME      = 1004;
+    static const int KEY_END       = 1005;
+    static const int KEY_PAGE_UP   = 1006;
+    static const int KEY_PAGE_DOWN = 1006;
+    static const int KEY_INSERT    = 1008;
+    static const int KEY_DELETE    = 1008;
+    static const int KEY_F0        = 1020;
+    static const int KEY_F1        = 1021;
+    static const int KEY_F2        = 1022;
+    static const int KEY_F3        = 1023;
+    static const int KEY_F4        = 1024;
+    static const int KEY_F5        = 1025;
+    static const int KEY_F6        = 1026;
+    static const int KEY_F7        = 1027;
+    static const int KEY_F8        = 1028;
+    static const int KEY_F9        = 1029;
+    static const int KEY_F10       = 1030;
+    static const int KEY_F11       = 1031;
+    static const int KEY_F12       = 1032;
 };
 
-int Menu::event_loop()
+int Menu::event_loop(bool enable_escape_sequences)
 {
     int return_code = 0;
     bool continue_looping = true;
     bool was_connected = false;
     int last_key = -1;
     int key_count = 0;
+    std::string escape_sequence;
     while(continue_looping) {
         if(stdio_usb_connected()) {
             if(!was_connected) {
@@ -128,24 +153,160 @@ int Menu::event_loop()
             was_connected = true;
             int key = getchar_timeout_us(100000);
             if(key >= 0) { 
-                if(key == '\014') {
+                if(!escape_sequence.empty()) {
+                    int escaped_key = -1;
+                    bool continue_escaping = false;
+                    if(escape_sequence.size() == 1) {
+                        switch(key) {
+                        case '\033':
+                            escaped_key = '\033'; break;
+                        case '[':
+                        case 'O':
+                            continue_escaping = true; break;
+                        default: break;
+                        }
+                    } else if(escape_sequence[1] == 'O') {
+                        switch(key) {
+                        // See https://www.gnu.org/software/screen/manual/html_node/Input-Translation.html#Input-Translation
+                        case 'A': escaped_key = KEY_UP; break;
+                        case 'B': escaped_key = KEY_DOWN; break;
+                        case 'C': escaped_key = KEY_RIGHT; break;
+                        case 'D': escaped_key = KEY_LEFT; break;
+                        case 'H': escaped_key = KEY_HOME; break;
+                        case 'F': escaped_key = KEY_END; break;
+                        case 'P': escaped_key = KEY_F1; break;
+                        case 'Q': escaped_key = KEY_F2; break;
+                        case 'R': escaped_key = KEY_F3; break;
+                        case 'S': escaped_key = KEY_F4; break;
+                        case 'p': escaped_key = '0'; break;
+                        case 'q': escaped_key = '1'; break;
+                        case 'r': escaped_key = '2'; break;
+                        case 's': escaped_key = '3'; break;
+                        case 't': escaped_key = '4'; break;
+                        case 'u': escaped_key = '5'; break;
+                        case 'v': escaped_key = '6'; break;
+                        case 'w': escaped_key = '7'; break;
+                        case 'x': escaped_key = '8'; break;
+                        case 'y': escaped_key = '9'; break;
+                        case 'k': escaped_key = '+'; break;
+                        case 'm': escaped_key = '-'; break;
+                        case 'j': escaped_key = '*'; break;
+                        case 'o': escaped_key = '/'; break;
+                        case 'X': escaped_key = '='; break;
+                        case 'n': escaped_key = '.'; break;
+                        case 'l': escaped_key = ','; break;
+                        case 'M': escaped_key = '\r'; break;
+                        default: break;
+                        }
+                    } else if(escape_sequence[1] == '[') {
+                        switch(key)
+                        {
+                        case 0x30: case 0x31: case 0x32: case 0x33:
+                        case 0x34: case 0x35: case 0x36: case 0x37:
+                        case 0x38: case 0x39: case 0x3A: case 0x3B:
+                        case 0x3C: case 0x3D: case 0x3E: case 0x3F:
+                            continue_escaping = true;
+                            break;
+                        case 'A': escaped_key = KEY_UP; break;
+                        case 'B': escaped_key = KEY_DOWN; break;
+                        case 'C': escaped_key = KEY_RIGHT; break;
+                        case 'D': escaped_key = KEY_LEFT; break;
+                        case 'H': escaped_key = KEY_HOME; break;
+                        case 'F': escaped_key = KEY_END; break;
+                        case '~':
+                            if(escape_sequence.size() == 3) {
+                                switch(escape_sequence[2]) 
+                                {
+                                case '1': escaped_key = KEY_HOME; break;
+                                case '2': escaped_key = KEY_INSERT; break;
+                                case '3': escaped_key = KEY_DELETE; break;
+                                case '4': escaped_key = KEY_END; break;
+                                case '5': escaped_key = KEY_PAGE_UP; break;
+                                case '6': escaped_key = KEY_PAGE_DOWN; break;
+                                case '7': escaped_key = KEY_HOME; break;
+                                case '8': escaped_key = KEY_END; break;
+                                default: break;
+                                }
+                            } else if(escape_sequence.size()==4 and escape_sequence[2]=='1') {
+                                switch(escape_sequence[3]) 
+                                {
+                                case '0': escaped_key = KEY_F0; break;
+                                case '1': escaped_key = KEY_F1; break;
+                                case '2': escaped_key = KEY_F2; break;
+                                case '3': escaped_key = KEY_F3; break;
+                                case '4': escaped_key = KEY_F4; break;
+                                case '5': escaped_key = KEY_F5; break;
+                                case '7': escaped_key = KEY_F6; break;
+                                case '8': escaped_key = KEY_F7; break;
+                                case '9': escaped_key = KEY_F8; break;
+                                default: break;
+                                }
+                            } else if(escape_sequence.size()==4 and escape_sequence[2]=='2') {
+                                switch(escape_sequence[3]) 
+                                {
+                                case '0': escaped_key = KEY_F9; break;
+                                case '1': escaped_key = KEY_F10; break;
+                                case '3': escaped_key = KEY_F11; break;
+                                case '4': escaped_key = KEY_F12; break;
+                                default: break;
+                                }
+                            }
+                        default: break;
+                        }
+                    }
+                    if(escaped_key >= 0) {
+                        if(escaped_key == last_key) {
+                            ++key_count;
+                        } else {
+                            last_key = escaped_key;
+                            key_count = 1;
+                        }
+                        continue_looping = this->process_key_press(escaped_key, key_count, return_code);
+                        escape_sequence.clear();
+                    } else if (continue_escaping) {
+                        escape_sequence.push_back(key);
+                    } else {
+                        last_key = -1;
+                        key_count = 0;
+                        for(auto k : escape_sequence) {
+                            continue_looping = this->process_key_press(k, 1, return_code);
+                            if(!continue_looping)return return_code;
+                        }
+                        continue_looping = this->process_key_press(key, 1, return_code);
+                        escape_sequence.clear();
+                    }
+                } else if(enable_escape_sequences and key == '\033') {
+                    escape_sequence.push_back(key);
+                    continue_looping = true;
+                } else if(key == '\014') {
+                    last_key = -1;
+                    key_count = 0;
                     this->redraw();
                     continue;
-                }
-                if(key == last_key) {
-                    ++key_count;
                 } else {
-                    last_key = key;
-                    key_count = 1;
+                    if(key == last_key) {
+                        ++key_count;
+                    } else {
+                        last_key = key;
+                        key_count = 1;
+                    }
+                    continue_looping = this->process_key_press(key, key_count, return_code);
                 }
-                continue_looping = this->process_key_press(key, key_count, return_code);
             } else {
+                if(!escape_sequence.empty()) {
+                    for(auto k : escape_sequence) {
+                        continue_looping = this->process_key_press(k, 1, return_code);
+                        if(!continue_looping)return return_code;
+                    }
+                    escape_sequence.clear();
+                }
                 last_key = -1;
                 key_count = 0;
                 continue_looping = this->process_timeout(return_code);
             }
         } else {
             was_connected = false;
+            escape_sequence.clear();
             sleep_us(1000);
         }
     }
@@ -165,13 +326,13 @@ void KeypressMenu::redraw()
 {
     cls();
     curpos(1,1);
-    puts("Type some keys (terminate with Crtl-D)");
+    puts("Type some keys (terminate with Ctrl-D)");
 }
 
 bool KeypressMenu::process_key_press(int key, int key_count, int& return_code)
 {
     char buffer[80];
-    sprintf(buffer, "%c %d \\%o %d",isprint(key)?key:' ',key,key,key_count);
+    sprintf(buffer, "%c %d \\%o %d",(key<256 and isprint(key))?key:' ',key,key,key_count);
     puts(buffer);
     return_code = 0;
     return key != '\004';
@@ -309,7 +470,7 @@ private:
         menu_items.emplace_back("T   : Toggle trigger", 3, "off");
         menu_items.emplace_back("P   : Pulse trigger", 0, "");
         menu_items.emplace_back("L   : Toggle on-board LED", 3, "off");
-        menu_items.emplace_back("K   : Display keypress", 0);
+        menu_items.emplace_back("k   : Display keypress", 0);
         //menu_items.emplace_back("Second test line", 0);
         //menu_items.emplace_back("Third test line", 0);
         return menu_items;
@@ -383,10 +544,12 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
         set_led_value();
         break;
+    case 'k':
     case 'K':
+    case 11: // ctrl-K
         {
             KeypressMenu key_menu;
-            key_menu.event_loop();
+            key_menu.event_loop(key != 11);
             this->redraw();
         }
         break;
