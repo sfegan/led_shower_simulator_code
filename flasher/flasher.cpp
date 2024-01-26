@@ -135,6 +135,10 @@ public:
     static const int KEY_F10       = 1030;
     static const int KEY_F11       = 1031;
     static const int KEY_F12       = 1032;
+
+private:
+    static int decode_partial_escape_sequence(int key, std::string& escape_sequence, 
+        bool& continue_accumulating_escape_sequence);
 };
 
 int Menu::event_loop(bool enable_escape_sequences)
@@ -154,106 +158,10 @@ int Menu::event_loop(bool enable_escape_sequences)
             int key = getchar_timeout_us(100000);
             if(key >= 0) { 
                 if(!escape_sequence.empty()) {
-                    int escaped_key = -1;
-                    bool continue_escaping = false;
-                    if(escape_sequence.size() == 1) {
-                        switch(key) {
-                        case '\033':
-                            escaped_key = '\033'; break;
-                        case '[':
-                        case 'O':
-                            continue_escaping = true; break;
-                        default: break;
-                        }
-                    } else if(escape_sequence[1] == 'O') {
-                        switch(key) {
-                        // See https://www.gnu.org/software/screen/manual/html_node/Input-Translation.html#Input-Translation
-                        case 'A': escaped_key = KEY_UP; break;
-                        case 'B': escaped_key = KEY_DOWN; break;
-                        case 'C': escaped_key = KEY_RIGHT; break;
-                        case 'D': escaped_key = KEY_LEFT; break;
-                        case 'H': escaped_key = KEY_HOME; break;
-                        case 'F': escaped_key = KEY_END; break;
-                        case 'P': escaped_key = KEY_F1; break;
-                        case 'Q': escaped_key = KEY_F2; break;
-                        case 'R': escaped_key = KEY_F3; break;
-                        case 'S': escaped_key = KEY_F4; break;
-                        case 'p': escaped_key = '0'; break;
-                        case 'q': escaped_key = '1'; break;
-                        case 'r': escaped_key = '2'; break;
-                        case 's': escaped_key = '3'; break;
-                        case 't': escaped_key = '4'; break;
-                        case 'u': escaped_key = '5'; break;
-                        case 'v': escaped_key = '6'; break;
-                        case 'w': escaped_key = '7'; break;
-                        case 'x': escaped_key = '8'; break;
-                        case 'y': escaped_key = '9'; break;
-                        case 'k': escaped_key = '+'; break;
-                        case 'm': escaped_key = '-'; break;
-                        case 'j': escaped_key = '*'; break;
-                        case 'o': escaped_key = '/'; break;
-                        case 'X': escaped_key = '='; break;
-                        case 'n': escaped_key = '.'; break;
-                        case 'l': escaped_key = ','; break;
-                        case 'M': escaped_key = '\r'; break;
-                        default: break;
-                        }
-                    } else if(escape_sequence[1] == '[') {
-                        switch(key)
-                        {
-                        case 0x30: case 0x31: case 0x32: case 0x33:
-                        case 0x34: case 0x35: case 0x36: case 0x37:
-                        case 0x38: case 0x39: case 0x3A: case 0x3B:
-                        case 0x3C: case 0x3D: case 0x3E: case 0x3F:
-                            continue_escaping = true;
-                            break;
-                        case 'A': escaped_key = KEY_UP; break;
-                        case 'B': escaped_key = KEY_DOWN; break;
-                        case 'C': escaped_key = KEY_RIGHT; break;
-                        case 'D': escaped_key = KEY_LEFT; break;
-                        case 'H': escaped_key = KEY_HOME; break;
-                        case 'F': escaped_key = KEY_END; break;
-                        case '~':
-                            if(escape_sequence.size() == 3) {
-                                switch(escape_sequence[2]) 
-                                {
-                                case '1': escaped_key = KEY_HOME; break;
-                                case '2': escaped_key = KEY_INSERT; break;
-                                case '3': escaped_key = KEY_DELETE; break;
-                                case '4': escaped_key = KEY_END; break;
-                                case '5': escaped_key = KEY_PAGE_UP; break;
-                                case '6': escaped_key = KEY_PAGE_DOWN; break;
-                                case '7': escaped_key = KEY_HOME; break;
-                                case '8': escaped_key = KEY_END; break;
-                                default: break;
-                                }
-                            } else if(escape_sequence.size()==4 and escape_sequence[2]=='1') {
-                                switch(escape_sequence[3]) 
-                                {
-                                case '0': escaped_key = KEY_F0; break;
-                                case '1': escaped_key = KEY_F1; break;
-                                case '2': escaped_key = KEY_F2; break;
-                                case '3': escaped_key = KEY_F3; break;
-                                case '4': escaped_key = KEY_F4; break;
-                                case '5': escaped_key = KEY_F5; break;
-                                case '7': escaped_key = KEY_F6; break;
-                                case '8': escaped_key = KEY_F7; break;
-                                case '9': escaped_key = KEY_F8; break;
-                                default: break;
-                                }
-                            } else if(escape_sequence.size()==4 and escape_sequence[2]=='2') {
-                                switch(escape_sequence[3]) 
-                                {
-                                case '0': escaped_key = KEY_F9; break;
-                                case '1': escaped_key = KEY_F10; break;
-                                case '3': escaped_key = KEY_F11; break;
-                                case '4': escaped_key = KEY_F12; break;
-                                default: break;
-                                }
-                            }
-                        default: break;
-                        }
-                    }
+                    bool continue_accumulating_escape_sequence = false;
+                    int escaped_key =
+                        decode_partial_escape_sequence(key, escape_sequence,    
+                            continue_accumulating_escape_sequence);
                     if(escaped_key >= 0) {
                         if(escaped_key == last_key) {
                             ++key_count;
@@ -263,7 +171,7 @@ int Menu::event_loop(bool enable_escape_sequences)
                         }
                         continue_looping = this->process_key_press(escaped_key, key_count, return_code);
                         escape_sequence.clear();
-                    } else if (continue_escaping) {
+                    } else if (continue_accumulating_escape_sequence) {
                         escape_sequence.push_back(key);
                     } else {
                         last_key = -1;
@@ -312,6 +220,113 @@ int Menu::event_loop(bool enable_escape_sequences)
     }
 
     return return_code;
+}
+
+int Menu::decode_partial_escape_sequence(int key, std::string& escape_sequence,
+    bool& continue_accumulating_escape_sequence)
+{
+    int escaped_key = -1;
+    continue_accumulating_escape_sequence = false;
+    int escape_sequence_size = escape_sequence.size();
+    if(escape_sequence_size == 1) {
+        switch(key) {
+        case '\033':
+            escaped_key = '\033'; break;
+        case '[':
+        case 'O':
+            continue_accumulating_escape_sequence = true; break;
+        default: break;
+        }
+    } else if(escape_sequence_size==2 and escape_sequence[1] == 'O') {
+        switch(key) {
+        // See https://www.gnu.org/software/screen/manual/html_node/Input-Translation.html#Input-Translation
+        case 'A': escaped_key = KEY_UP; break;
+        case 'B': escaped_key = KEY_DOWN; break;
+        case 'C': escaped_key = KEY_RIGHT; break;
+        case 'D': escaped_key = KEY_LEFT; break;
+        case 'H': escaped_key = KEY_HOME; break;
+        case 'F': escaped_key = KEY_END; break;
+        case 'P': escaped_key = KEY_F1; break;
+        case 'Q': escaped_key = KEY_F2; break;
+        case 'R': escaped_key = KEY_F3; break;
+        case 'S': escaped_key = KEY_F4; break;
+        case 'p': escaped_key = '0'; break;
+        case 'q': escaped_key = '1'; break;
+        case 'r': escaped_key = '2'; break;
+        case 's': escaped_key = '3'; break;
+        case 't': escaped_key = '4'; break;
+        case 'u': escaped_key = '5'; break;
+        case 'v': escaped_key = '6'; break;
+        case 'w': escaped_key = '7'; break;
+        case 'x': escaped_key = '8'; break;
+        case 'y': escaped_key = '9'; break;
+        case 'k': escaped_key = '+'; break;
+        case 'm': escaped_key = '-'; break;
+        case 'j': escaped_key = '*'; break;
+        case 'o': escaped_key = '/'; break;
+        case 'X': escaped_key = '='; break;
+        case 'n': escaped_key = '.'; break;
+        case 'l': escaped_key = ','; break;
+        case 'M': escaped_key = '\r'; break;
+        default: break;
+        }
+    } else if(escape_sequence[1] == '[') {
+        switch(key)
+        {
+        case 0x30: case 0x31: case 0x32: case 0x33:
+        case 0x34: case 0x35: case 0x36: case 0x37:
+        case 0x38: case 0x39: case 0x3A: case 0x3B:
+        case 0x3C: case 0x3D: case 0x3E: case 0x3F:
+            continue_accumulating_escape_sequence = true;
+            break;
+        case 'A': escaped_key = KEY_UP; break;
+        case 'B': escaped_key = KEY_DOWN; break;
+        case 'C': escaped_key = KEY_RIGHT; break;
+        case 'D': escaped_key = KEY_LEFT; break;
+        case 'H': escaped_key = KEY_HOME; break;
+        case 'F': escaped_key = KEY_END; break;
+        case '~':
+            if(escape_sequence_size == 3) {
+                switch(escape_sequence[2]) 
+                {
+                case '1': escaped_key = KEY_HOME; break;
+                case '2': escaped_key = KEY_INSERT; break;
+                case '3': escaped_key = KEY_DELETE; break;
+                case '4': escaped_key = KEY_END; break;
+                case '5': escaped_key = KEY_PAGE_UP; break;
+                case '6': escaped_key = KEY_PAGE_DOWN; break;
+                case '7': escaped_key = KEY_HOME; break;
+                case '8': escaped_key = KEY_END; break;
+                default: break;
+                }
+            } else if(escape_sequence_size==4 and escape_sequence[2]=='1') {
+                switch(escape_sequence[3]) 
+                {
+                case '0': escaped_key = KEY_F0; break;
+                case '1': escaped_key = KEY_F1; break;
+                case '2': escaped_key = KEY_F2; break;
+                case '3': escaped_key = KEY_F3; break;
+                case '4': escaped_key = KEY_F4; break;
+                case '5': escaped_key = KEY_F5; break;
+                case '7': escaped_key = KEY_F6; break;
+                case '8': escaped_key = KEY_F7; break;
+                case '9': escaped_key = KEY_F8; break;
+                default: break;
+                }
+            } else if(escape_sequence_size==4 and escape_sequence[2]=='2') {
+                switch(escape_sequence[3]) 
+                {
+                case '0': escaped_key = KEY_F9; break;
+                case '1': escaped_key = KEY_F10; break;
+                case '3': escaped_key = KEY_F11; break;
+                case '4': escaped_key = KEY_F12; break;
+                default: break;
+                }
+            }
+        default: break;
+        }
+    }
+    return escaped_key;
 }
 
 class KeypressMenu: public Menu {
@@ -462,15 +477,14 @@ public:
 private:
     static std::vector<MenuItem> make_menu_items() {
         std::vector<MenuItem> menu_items;
-        menu_items.emplace_back("+/- : Increase/decrease DAC voltage", 3, "0");
-        menu_items.emplace_back("Z   : Zero DAC voltage", 0, "");
-        menu_items.emplace_back("h/l : Decrease/increase column", 2, "1");
-        menu_items.emplace_back("j/k : Increase/decrease row", 2, "1");
-        menu_items.emplace_back("D   : Toggle DAC enabled", 3, "off");
-        menu_items.emplace_back("T   : Toggle trigger", 3, "off");
-        menu_items.emplace_back("P   : Pulse trigger", 0, "");
-        menu_items.emplace_back("L   : Toggle on-board LED", 3, "off");
-        menu_items.emplace_back("k   : Display keypress", 0);
+        menu_items.emplace_back("</>     : Increase/decrease DAC voltage", 3, "0");
+        menu_items.emplace_back("Z       : Zero DAC voltage", 0, "");
+        menu_items.emplace_back("Cursors : Change column & row", 3, "A1");
+        menu_items.emplace_back("D       : Toggle DAC enabled", 3, "off");
+        menu_items.emplace_back("T       : Toggle trigger", 3, "off");
+        menu_items.emplace_back("P       : Pulse trigger", 0, "");
+        menu_items.emplace_back("L       : Toggle on-board LED", 3, "off");
+        menu_items.emplace_back("k       : Display keypress", 0);
         //menu_items.emplace_back("Second test line", 0);
         //menu_items.emplace_back("Third test line", 0);
         return menu_items;
@@ -479,16 +493,15 @@ private:
     void sync_values();
     void set_vdac_value(bool draw = true) { 
         menu_items_[0].value = std::to_string(vdac_); if(draw)draw_item_value(0); }
-    void set_ac_value(bool draw = true) { 
-        menu_items_[2].value = std::to_string(ac_); if(draw)draw_item_value(2); }
-    void set_ar_value(bool draw = true) { 
-        menu_items_[3].value = std::to_string(ar_); if(draw)draw_item_value(4); }
+    void set_rc_value(bool draw = true) { 
+        menu_items_[2].value = std::string(1, char('A' + ar_)) 
+            + std::to_string(ac_); if(draw)draw_item_value(2); }
     void set_dac_e_value(bool draw = true) { 
-        menu_items_[4].value = dac_e_ ? "on" : "off"; if(draw)draw_item_value(4); }
+        menu_items_[3].value = dac_e_ ? "on" : "off"; if(draw)draw_item_value(3); }
     void set_trig_value(bool draw = true) { 
-        menu_items_[5].value = trig_ ? "on" : "off"; if(draw)draw_item_value(5); }
+        menu_items_[4].value = trig_ ? "on" : "off"; if(draw)draw_item_value(4); }
     void set_led_value(bool draw = true) { 
-        menu_items_[7].value = led_int_ ? "on" : "off"; if(draw)draw_item_value(7); }
+        menu_items_[6].value = led_int_ ? "on" : "off"; if(draw)draw_item_value(6); }
 
     int vdac_ = 0;
     int ac_ = 0;
@@ -514,8 +527,7 @@ void EngineeringMenu::sync_values()
     dac_e_ = (all_gpio>>20)&0x000001;
     led_int_ = (all_gpio>>PICO_DEFAULT_LED_PIN)&0x000001;
     set_vdac_value(false);
-    set_ac_value(false);
-    set_ar_value(false);
+    set_rc_value(false);
     set_dac_e_value(false);
     set_trig_value(false);
     set_led_value(false);
@@ -524,22 +536,63 @@ void EngineeringMenu::sync_values()
 bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code)
 {
     switch(key) {
+    case '>':
     case '+':
         vdac_ = std::min(vdac_ + (key_count >= 15 ? 5 : 1), 255);
         gpio_put_masked(0x0000FF, vdac_ & 0x0000FF);
         set_vdac_value();
         break;
+    case '<':
     case '-':
         vdac_ = std::max(vdac_ - (key_count >= 15 ? 5 : 1), 0);
         gpio_put_masked(0x0000FF, vdac_ & 0x0000FF);
         set_vdac_value();
         break;
-    case 'Z':
+   case 'Z':
         vdac_ = 0;
         gpio_put_masked(0x0000FF, vdac_ & 0x0000FF);
         set_vdac_value();
         break;
-    case 'L':
+    case KEY_UP:
+        ar_ = std::max(ar_-1, 0);
+        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        set_rc_value();
+        break;
+    case KEY_DOWN:
+        ar_ = std::min(ar_+1, 15);
+        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        set_rc_value();
+        break;
+    case KEY_LEFT:
+        ac_ = std::max(ac_-1, 0);
+        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        set_rc_value();
+        break;
+    case KEY_RIGHT:
+        ac_ = std::min(ac_+1, 15);
+        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        set_rc_value();
+        break;
+     case 'D':
+        dac_e_ = !dac_e_;
+        gpio_put(20, dac_e_ ? 1 : 0);
+        set_dac_e_value();
+        break;
+     case 'T':
+        trig_ = !trig_;
+        gpio_put(19, trig_ ? 1 : 0);
+        set_trig_value();
+        break;
+     case 'P':
+        gpio_put(19, 1);
+        gpio_put(19, 0);
+        trig_ = 1;
+        set_trig_value();
+        sleep_ms(100);
+        trig_ = 0;
+        set_trig_value();
+        break;
+     case 'L':
         led_int_ = !led_int_;
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
         set_led_value();
