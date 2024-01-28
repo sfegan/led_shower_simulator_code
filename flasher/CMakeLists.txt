@@ -1,5 +1,5 @@
 add_executable(flasher
-        flasher.cpp
+        flasher.cpp menu.cpp
         )
 
 # pull in common dependencies
