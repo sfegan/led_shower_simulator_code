@@ -6,6 +6,6 @@ Build instructions
 4. cmake ..
 5. cd flasher
 6. make -j4
-7. Push button on PICO and connect USB power
+7. Hold button on PICO and connect USB power until device mounted in mass-storage mode
 8. cp flasher.uf2 /Volumes/RPI-RP2
 9. screen /dev/tty.usbmodem141101
