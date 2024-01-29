@@ -7,7 +7,8 @@ class Menu {
 public:
     virtual ~Menu();
     virtual void redraw() = 0;
-    virtual bool process_key_press(int key, int key_count, int& return_code) = 0;
+    virtual bool process_key_press(int key, int key_count, int& return_code,
+        const std::vector<std::string>& escape_sequence_parameters) = 0;
     virtual bool process_timeout(int& return_code) = 0;
 
     int event_loop(bool enable_escape_sequences = true);
@@ -28,36 +29,42 @@ public:
     static void show_cursor();
     static void hide_cursor();
     static void curpos(int r, int c);
+    static void save_cursor();
+    static void restore_cursor();
+    static void reset_colors();
     static void send_request_screen_size();
 
     static void draw_box(int fh, int fw, int fr, int fc);
     static bool draw_title(const std::string& title,
             int fh, int fw, int fr, int fc, const std::string& title_style = {});
 
+    static const int FAILED_ESCAPE_SEQUENCE      = 997;
+    static const int INCOMPLETE_ESCAPE_SEQUENCE  = 998;
     static const int UNSUPPORTED_ESCAPE_SEQUENCE = 999;
-    static const int KEY_UP        = 1000;
-    static const int KEY_DOWN      = 1001;
-    static const int KEY_RIGHT     = 1002;
-    static const int KEY_LEFT      = 1003;
-    static const int KEY_HOME      = 1004;
-    static const int KEY_END       = 1005;
-    static const int KEY_PAGE_UP   = 1006;
-    static const int KEY_PAGE_DOWN = 1007;
-    static const int KEY_INSERT    = 1008;
-    static const int KEY_DELETE    = 1008;
-    static const int KEY_F0        = 1020;
-    static const int KEY_F1        = 1021;
-    static const int KEY_F2        = 1022;
-    static const int KEY_F3        = 1023;
-    static const int KEY_F4        = 1024;
-    static const int KEY_F5        = 1025;
-    static const int KEY_F6        = 1026;
-    static const int KEY_F7        = 1027;
-    static const int KEY_F8        = 1028;
-    static const int KEY_F9        = 1029;
-    static const int KEY_F10       = 1030;
-    static const int KEY_F11       = 1031;
-    static const int KEY_F12       = 1032;
+    static const int KEY_UP                      = 1000;
+    static const int KEY_DOWN                    = 1001;
+    static const int KEY_RIGHT                   = 1002;
+    static const int KEY_LEFT                    = 1003;
+    static const int KEY_HOME                    = 1004;
+    static const int KEY_END                     = 1005;
+    static const int KEY_PAGE_UP                 = 1006;
+    static const int KEY_PAGE_DOWN               = 1007;
+    static const int KEY_INSERT                  = 1008;
+    static const int KEY_DELETE                  = 1008;
+    static const int KEY_F0                      = 1020;
+    static const int KEY_F1                      = 1021;
+    static const int KEY_F2                      = 1022;
+    static const int KEY_F3                      = 1023;
+    static const int KEY_F4                      = 1024;
+    static const int KEY_F5                      = 1025;
+    static const int KEY_F6                      = 1026;
+    static const int KEY_F7                      = 1027;
+    static const int KEY_F8                      = 1028;
+    static const int KEY_F9                      = 1029;
+    static const int KEY_F10                     = 1030;
+    static const int KEY_F11                     = 1031;
+    static const int KEY_F12                     = 1032;
+    static const int CURSOR_POSITION_REPORT      = 1100;
 
 protected:
     int screen_w_ = default_screen_width();
@@ -65,7 +72,7 @@ protected:
 
 private:
     static int decode_partial_escape_sequence(int key, std::string& escape_sequence, 
-        bool& continue_accumulating_escape_sequence);
+        std::vector<std::string>& escape_sequence_parameters);
 };
 
 class FramedMenu: public Menu
@@ -98,6 +105,7 @@ public:
         std::string item;
         int max_value_size;
         std::string value;
+        std::string value_style = {};
     };
 
     SimpleItemValueMenu(const std::vector<MenuItem>& menu_items, 

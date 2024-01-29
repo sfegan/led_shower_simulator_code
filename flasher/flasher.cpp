@@ -13,7 +13,8 @@ class KeypressMenu: public Menu {
 public:
     virtual ~KeypressMenu() { }
     void redraw() override;
-    bool process_key_press(int key, int key_count, int& return_code) override;
+    bool process_key_press(int key, int key_count, int& return_code, 
+        const std::vector<std::string>& escape_sequence_parameters) override;
     bool process_timeout(int& return_code) override;
 };
 
@@ -24,11 +25,22 @@ void KeypressMenu::redraw()
     puts("Type some keys (terminate with Ctrl-D)");
 }
 
-bool KeypressMenu::process_key_press(int key, int key_count, int& return_code)
+bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
+    const std::vector<std::string>& escape_sequence_parameters)
 {
     char buffer[80];
     sprintf(buffer, "%c %d \\%o %d",(key<256 and isprint(key))?key:' ',key,key,key_count);
-    puts(buffer);
+    if(escape_sequence_parameters.empty()) {
+        puts(buffer);    
+    } else {
+        puts_raw_nonl(buffer);
+        puts_raw_nonl(" (");
+        for(unsigned i=0; i<escape_sequence_parameters.size(); ++i) {
+            if(i!=0)puts_raw_nonl(", ");
+            puts_raw_nonl(escape_sequence_parameters[i]);
+        }
+        puts(")");
+    }
     return_code = 0;
     if(key == '\003') {
         send_request_screen_size();
@@ -54,7 +66,8 @@ class EngineeringMenu: public SimpleItemValueMenu {
 public:
     EngineeringMenu();
     virtual ~EngineeringMenu() { }
-    bool process_key_press(int key, int key_count, int& return_code) final;
+    bool process_key_press(int key, int key_count, int& return_code, 
+        const std::vector<std::string>& escape_sequence_parameters) final;
     bool process_timeout(int& return_code) final;
 
 private:
@@ -80,11 +93,20 @@ private:
         menu_items_[2].value = std::string(1, char('A' + ar_)) 
             + std::to_string(ac_); if(draw)draw_item_value(2); }
     void set_dac_e_value(bool draw = true) { 
-        menu_items_[3].value = dac_e_ ? "on" : "off"; if(draw)draw_item_value(3); }
+        menu_items_[3].value = dac_e_ ? "ON" : "off";
+        menu_items_[3].value_style = dac_e_ ? "\033[7m" : ""; 
+        if(draw)draw_item_value(3);
+    }
     void set_trig_value(bool draw = true) { 
-        menu_items_[4].value = trig_ ? "on" : "off"; if(draw)draw_item_value(4); }
+        menu_items_[4].value = trig_ ? "ON" : "off"; 
+        menu_items_[4].value_style = trig_ ? "\033[7m" : "";
+        if(draw)draw_item_value(4); 
+    }
     void set_led_value(bool draw = true) { 
-        menu_items_[6].value = led_int_ ? "on" : "off"; if(draw)draw_item_value(6); }
+        menu_items_[6].value = led_int_ ? "ON" : "off"; 
+        menu_items_[6].value_style = led_int_ ? "\033[7m" : "";
+        if(draw)draw_item_value(6); 
+    }
 
     int vdac_ = 0;
     int ac_ = 0;
@@ -116,7 +138,8 @@ void EngineeringMenu::sync_values()
     set_led_value(false);
 }
 
-bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code)
+bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code,
+    const std::vector<std::string>& escape_sequence_parameters)
 {
     switch(key) {
     case '>':
