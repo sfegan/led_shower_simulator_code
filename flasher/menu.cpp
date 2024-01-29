@@ -86,12 +86,12 @@ void Menu::cls()
 
 void Menu::show_cursor() 
 { 
-    puts_raw_nonl("\033[?25h\0337p"); 
+    puts_raw_nonl("\033[?25h"); //\0337p"); 
 }
 
 void Menu::hide_cursor() 
 { 
-    puts_raw_nonl("\033[?25l\0336p"); 
+    puts_raw_nonl("\033[?25l"); //\0336p"); 
 }
 
 void Menu::curpos(int r, int c) 
@@ -122,18 +122,17 @@ void Menu::send_request_screen_size()
 }
 
 void Menu::draw_box(int fh, int fw, int fr, int fc) {
-    char buffer[80];
-    sprintf(buffer,"\033[%d;%dH",fr+1,fc+1);
-    puts_raw_nonl(buffer);
+    curpos(fr+1,fc+1);
     putchar_raw('+');
     for(int ic=2;ic<fw;++ic)putchar_raw('-');
     putchar_raw('+');
     for(int ir=2;ir<fh;++ir) {
-        sprintf(buffer,"\033[%d;%dH|\033[%d;%dH|",fr+ir,fc+1,fr+ir,fc+fw);
-        puts_raw_nonl(buffer);
+        curpos(fr+ir,fc+1);
+        putchar_raw('|');
+        for(int ic=2;ic<fw;++ic)putchar_raw(' ');
+        putchar_raw('|');
     }
-    sprintf(buffer,"\033[%d;%dH",fr+fh,fc+1);
-    puts_raw_nonl(buffer);
+    curpos(fr+fh,fc+1);
     putchar_raw('+');
     for(int ic=2;ic<fw;++ic)putchar_raw('-');
     putchar_raw('+');
@@ -455,7 +454,7 @@ void FramedMenu::redraw()
 {
     setup_frame();
     hide_cursor();
-    cls();
+    if(cls_on_redraw_)cls();
     draw_box(frame_h_, frame_w_, frame_r_, frame_c_);
     if(!title_.empty())draw_title(title_, frame_h_, frame_w_, frame_r_, frame_c_, {});
 }

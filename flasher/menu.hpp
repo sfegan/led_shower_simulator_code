@@ -99,6 +99,8 @@ protected:
     int frame_w_ = default_screen_width();
     int frame_r_ = 0;
     int frame_c_ = 0;
+
+    bool cls_on_redraw_ = false;
 };
 
 class SimpleItemValueMenu: public FramedMenu {
