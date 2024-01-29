@@ -56,6 +56,29 @@ int Menu::puts_raw_nonl(const std::string& s, size_t maxchars, bool fill)
     return 0;
 }
 
+int Menu::puts_formatted(const std::string& s, const std::string& format, 
+    size_t maxchars, bool fill)
+{
+    size_t schars = std::min(maxchars, s.size());
+    if(!format.empty()) {
+        if(puts_raw_nonl("\0337") == EOF or puts_raw_nonl(format) == EOF)
+            return EOF;
+    }
+    for (size_t i=0; i<schars; ++i, --maxchars) {
+        if (putchar_raw(s[i]) == EOF) return EOF;
+    }
+    if(fill && maxchars) {
+        while(maxchars--) {
+            if (putchar_raw(' ') == EOF) return EOF;
+        }
+    }
+    if(!format.empty()) {
+        if (puts_raw_nonl("\0338") == EOF)return EOF;
+    }
+    return 0;
+}
+
+
 void Menu::cls() 
 { 
     puts_raw_nonl("\033[2J"); 
@@ -223,7 +246,6 @@ int Menu::event_loop(bool enable_escape_sequences)
                     } else {
                         this->redraw();
                     }
-                    continue;
                 } else {
                     if(sent_request_window_size) {
                         this->redraw();
@@ -531,9 +553,8 @@ void SimpleItemValueMenu::draw_item_value(unsigned iitem)
     if(iitem<menu_items_.size()) {
         curpos(item_r_+iitem*item_dr_+1, val_c_+1);
         if(!menu_items_[iitem].value_style.empty()) {
-            puts_raw_nonl(menu_items_[iitem].value_style);
-            puts_raw_nonl(menu_items_[iitem].value, menu_items_[iitem].max_value_size, true);
-            reset_colors();
+            puts_formatted(menu_items_[iitem].value, menu_items_[iitem].value_style, 
+                menu_items_[iitem].max_value_size, true);
         } else {
             puts_raw_nonl(menu_items_[iitem].value, menu_items_[iitem].max_value_size, true);
         }

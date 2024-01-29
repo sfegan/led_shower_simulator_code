@@ -76,10 +76,10 @@ private:
         menu_items.emplace_back("</>     : Increase/decrease DAC voltage", 3, "0");
         menu_items.emplace_back("Z       : Zero DAC voltage", 0, "");
         menu_items.emplace_back("Cursors : Change column & row", 3, "A1");
-        menu_items.emplace_back("D       : Toggle DAC enabled", 3, "off");
-        menu_items.emplace_back("T       : Toggle trigger", 3, "off");
+        menu_items.emplace_back("D       : Toggle DAC enabled", 4, "off");
+        menu_items.emplace_back("T       : Toggle trigger", 4, "off");
         menu_items.emplace_back("P       : Pulse trigger", 0, "");
-        menu_items.emplace_back("L       : Toggle on-board LED", 3, "off");
+        menu_items.emplace_back("L       : Toggle on-board LED", 4, "off");
         menu_items.emplace_back("k       : Display keypress", 0);
         //menu_items.emplace_back("Second test line", 0);
         //menu_items.emplace_back("Third test line", 0);
@@ -93,17 +93,17 @@ private:
         menu_items_[2].value = std::string(1, char('A' + ar_)) 
             + std::to_string(ac_); if(draw)draw_item_value(2); }
     void set_dac_e_value(bool draw = true) { 
-        menu_items_[3].value = dac_e_ ? "ON" : "off";
+        menu_items_[3].value = dac_e_ ? ">ON<" : "off";
         menu_items_[3].value_style = dac_e_ ? "\033[7m" : ""; 
         if(draw)draw_item_value(3);
     }
     void set_trig_value(bool draw = true) { 
-        menu_items_[4].value = trig_ ? "ON" : "off"; 
+        menu_items_[4].value = trig_ ? ">ON<" : "off"; 
         menu_items_[4].value_style = trig_ ? "\033[7m" : "";
         if(draw)draw_item_value(4); 
     }
     void set_led_value(bool draw = true) { 
-        menu_items_[6].value = led_int_ ? "ON" : "off"; 
+        menu_items_[6].value = led_int_ ? ">ON<" : "off"; 
         menu_items_[6].value_style = led_int_ ? "\033[7m" : "";
         if(draw)draw_item_value(6); 
     }

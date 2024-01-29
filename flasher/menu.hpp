@@ -22,6 +22,9 @@ public:
     static int puts_raw_nonl(const std::string& s);
     static int puts_raw_nonl(const std::string& s, size_t maxchars, bool fill = false);
 
+    static int puts_formatted(const std::string& s, const std::string& format, 
+        size_t maxchars, bool fill = false);
+
     static int default_screen_width() { return 80; }
     static int default_screen_height() { return 24; }
 
