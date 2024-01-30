@@ -11,7 +11,7 @@ public:
         const std::vector<std::string>& escape_sequence_parameters) = 0;
     virtual bool process_timeout(int& return_code) = 0;
 
-    int event_loop(bool enable_escape_sequences = true);
+    int event_loop(bool enable_escape_sequences = true, bool enable_reboot = true);
 
     int screen_width() const { return screen_w_; }
     int screen_height() const { return screen_h_; }
@@ -135,4 +135,18 @@ protected:
     int item_c_ = 0;
     int val_c_ = 0;
     int item_dr_ = 1;
+};
+
+class RebootMenu: public FramedMenu {
+public:
+    RebootMenu(Menu* base_menu = nullptr);
+    virtual ~RebootMenu() { }
+    void redraw() override;
+    bool process_key_press(int key, int key_count, int& return_code, 
+        const std::vector<std::string>& escape_sequence_parameters) override;
+    bool process_timeout(int& return_code) override;
+private:
+    Menu* base_menu_ = nullptr;
+    int dots_ = 0;
+    int timeout_ = 0;
 };

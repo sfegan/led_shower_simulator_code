@@ -6,6 +6,7 @@
 #include <cctype>
 
 #include <pico/stdlib.h>
+#include <hardware/watchdog.h>
 
 #include "menu.hpp"
 
@@ -153,7 +154,7 @@ bool Menu::draw_title(const std::string& title, int fh, int fw, int fr, int fc,
     return tw == int(title.size());
 }
 
-int Menu::event_loop(bool enable_escape_sequences)
+int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
 {
     int return_code = 0;
     bool continue_looping = true;
@@ -245,6 +246,12 @@ int Menu::event_loop(bool enable_escape_sequences)
                     } else {
                         this->redraw();
                     }
+                } else if(enable_reboot and key == '\002') {
+                    last_key = -1;
+                    key_count = 0;
+                    RebootMenu reboot(this);
+                    reboot.event_loop(/* enable_esc= */ true, /* enable_reboot= */ false);
+                    this->redraw();
                 } else {
                     if(sent_request_window_size) {
                         this->redraw();
@@ -559,3 +566,54 @@ void SimpleItemValueMenu::draw_item_value(unsigned iitem)
         }
     }
 }
+
+RebootMenu::RebootMenu(Menu* base_menu): 
+    FramedMenu("Reboot",7,40,0), base_menu_(base_menu) 
+{ 
+    cls_on_redraw_ = false;
+    if(base_menu) { 
+        this->set_screen_size(base_menu->screen_height(), base_menu->screen_width());
+    }
+}
+
+void RebootMenu::redraw()
+{
+    if(base_menu_) { base_menu_->redraw(); }
+    FramedMenu::redraw();
+    curpos(frame_r_+5, frame_c_+4);
+    puts_raw_nonl("Hold ctrl-B to reboot : ");
+    for(int i=0;i<dots_;++i)putchar_raw('X');
+    for(int i=dots_;i<10;++i)putchar_raw('_');
+}
+
+bool RebootMenu::process_key_press(int key, int key_count, int& return_code, 
+    const std::vector<std::string>& escape_sequence_parameters)
+{
+    if(key == '\002') {
+        ++dots_;
+        curpos(frame_r_+5, frame_c_+28);
+        for(int i=0;i<dots_;++i)putchar_raw('X');
+        for(int i=dots_;i<10;++i)putchar_raw('_');
+        if(dots_ >= 10) {
+            watchdog_enable(1,false);
+            while(1);
+        }
+        timeout_ = 0;
+        return true;
+    } else {
+        return_code = 0;
+        return false;
+    }
+}
+
+bool RebootMenu::process_timeout(int& return_code)
+{
+    if(timeout_>5)
+    {
+        return_code = 0;
+        return false;
+    }
+    ++timeout_;
+    return true;
+}
+

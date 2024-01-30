@@ -6,7 +6,6 @@
 #include <cctype>
 
 #include <pico/stdlib.h>
-#include <hardware/watchdog.h>
 
 #include "menu.hpp"
 
@@ -56,65 +55,6 @@ bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
 bool KeypressMenu::process_timeout(int& return_code)
 {
     return_code = 0;
-    return true;
-}
-
-class RebootMenu: public FramedMenu {
-public:
-    RebootMenu(Menu* base_menu = nullptr): 
-        FramedMenu("Reboot",7,40,0), base_menu_(base_menu) 
-    { 
-        cls_on_redraw_ = false; 
-    }
-    virtual ~RebootMenu() { }
-    void redraw() override;
-    bool process_key_press(int key, int key_count, int& return_code, 
-        const std::vector<std::string>& escape_sequence_parameters) override;
-    bool process_timeout(int& return_code) override;
-private:
-    Menu* base_menu_ = nullptr;
-    int dots_ = 0;
-    int timeout_ = 0;
-};
-
-void RebootMenu::redraw()
-{
-    // if(base_menu_) { base_menu_->redraw(); }
-    FramedMenu::redraw();
-    curpos(frame_r_+5, frame_c_+4);
-    puts_raw_nonl("Hold ctrl-B to reboot : ");
-    for(int i=0;i<dots_;++i)putchar_raw('X');
-    for(int i=dots_;i<10;++i)putchar_raw('_');
-}
-
-bool RebootMenu::process_key_press(int key, int key_count, int& return_code, 
-    const std::vector<std::string>& escape_sequence_parameters)
-{
-    if(key == '\002') {
-        ++dots_;
-        curpos(frame_r_+5, frame_c_+28);
-        for(int i=0;i<dots_;++i)putchar_raw('X');
-        for(int i=dots_;i<10;++i)putchar_raw('_');
-        if(dots_ >= 10) {
-            watchdog_enable(1,false);
-            while(1);
-        }
-        timeout_ = 0;
-        return true;
-    } else {
-        return_code = 0;
-        return false;
-    }
-}
-
-bool RebootMenu::process_timeout(int& return_code)
-{
-    if(timeout_>5)
-    {
-        return_code = 0;
-        return false;
-    }
-    ++timeout_;
     return true;
 }
 
@@ -317,13 +257,6 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         WRITEVAL(val_c_);
         WRITEVAL(item_dr_);
         puts("Press ctrl-L to redraw menu...");
-        break;
-    case '\002':
-        {
-            RebootMenu reboot(this);
-            reboot.event_loop();
-            this->redraw();
-        }
         break;
     }
     // char buffer[80];
