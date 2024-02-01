@@ -30,7 +30,8 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
     case '+':
         if(freq_<30000.0) {
             double df = 0.1;
-            if(freq_ >= 3000 || (freq_ >= 300 && key_count>10)) { df = 100; }
+            if(freq_ >= 3000 && key_count>10) { df = 1000; }
+            else if(freq_ >= 3000 || (freq_ >= 300 && key_count>10)) { df = 100; }
             else if(freq_ >= 300 || (freq_ >= 30 && key_count>10)) { df = 10.0; }
             else if(freq_ >= 30 || key_count>10) { df = 1.0; }
             lock_and_set(freq_, std::min((std::floor(freq_/df + 0.5) + 1.0) * df, 30000.0));
@@ -41,7 +42,8 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
     case '_':
         if(freq_>0.0) {
             double df = 0.1;
-            if(freq_ > 3000 || (freq_ > 300 && key_count>10)) { df = 100; }
+            if(freq_ > 3000 && key_count>10) { df = 1000; }
+            else if(freq_ > 3000 || (freq_ > 300 && key_count>10)) { df = 100; }
             else if(freq_ > 300 || (freq_ > 30 && key_count>10)) { df = 10.0; }
             else if(freq_ > 30 || key_count>10) { df = 1.0; }
             lock_and_set(freq_, std::max((std::floor(freq_/df + 0.5) - 1.0) * df, 0.0));
@@ -122,6 +124,12 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
             set_enabled_value();
         } else if(key_count >= 10) {
             lock_and_set(enabled_, true);
+            set_enabled_value();
+        }
+        break;
+    case 's':
+        if(enabled_) {
+            lock_and_set(enabled_, false);
             set_enabled_value();
         }
         break;
