@@ -290,6 +290,8 @@ int main()
 
     stdio_init_all();
 
+    EventDispatcher::instance().start_dispatcher();
+
     // EngineeringMenu menu;
     SingleLEDEventGenerator menu;
     menu.event_loop();

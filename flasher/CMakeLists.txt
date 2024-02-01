@@ -3,7 +3,7 @@ add_executable(flasher
         )
 
 # pull in common dependencies
-target_link_libraries(flasher pico_stdlib)
+target_link_libraries(flasher pico_stdlib pico_multicore pico_sync)
 target_compile_definitions(flasher PRIVATE)
 
 # create map/bin/hex file etc.
