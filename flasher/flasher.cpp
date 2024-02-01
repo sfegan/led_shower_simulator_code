@@ -8,6 +8,7 @@
 #include <pico/stdlib.h>
 
 #include "menu.hpp"
+#include "event_generators.hpp"
 
 class KeypressMenu: public Menu {
 public:
@@ -289,6 +290,7 @@ int main()
 
     stdio_init_all();
 
-    EngineeringMenu menu;
+    // EngineeringMenu menu;
+    SingleLEDEventGenerator menu;
     menu.event_loop();
 }
