@@ -3,6 +3,13 @@
 #include <string>
 
 #include "menu.hpp"
+#include "event_dispatcher.hpp"
+
+template<typename T> void lock_and_set(T& variable, const T& value) {
+    EventDispatcher::instance().lock();
+    variable = value;
+    EventDispatcher::instance().unlock();
+}
 
 class EventGenerator {
 public:

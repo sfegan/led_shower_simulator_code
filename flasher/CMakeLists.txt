@@ -1,5 +1,5 @@
 add_executable(flasher
-        flasher.cpp menu.cpp event_generators.cpp
+        flasher.cpp menu.cpp event_generators.cpp event_dispatcher.cpp
         )
 
 # pull in common dependencies
