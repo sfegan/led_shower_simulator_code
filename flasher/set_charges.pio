@@ -1,0 +1,38 @@
+.program set_charges
+.side_set 1
+
+; Autopull must be enabled .. assume 16-bit integers packed into 32-bit word
+restart:
+.wrap_target
+;    out pins, 16 side 0 [1] ; Stall here on empty (sideset proceeds irrespective)
+;    nop side 1
+    out x, 16 side 0
+    jmp !x restart side 0
+    mov pins, x side 0 [1]
+    nop side 1
+.wrap
+
+%c-sdk {
+
+static inline void set_charges_program_init(PIO pio, uint sm, uint offset, uint pin_base, uint pin_dac_e) 
+{
+    uint npins = 16;
+    uint mask = ((~0u >> (32-npins))<<pin_base) | (1u << pin_dac_e);
+
+    pio_sm_set_pins_with_mask(pio, sm, 0, mask);
+    pio_sm_set_pindirs_with_mask(pio, sm, ~0u, mask);
+
+    for (uint i = pin_base; i < pin_base + 16; ++i)
+        pio_gpio_init(pio, i);
+    pio_gpio_init(pio, pin_dac_e);
+
+    pio_sm_config c = set_charges_program_get_default_config(offset);
+
+    sm_config_set_out_pins(&c, pin_base, 16);
+    sm_config_set_sideset_pins(&c, pin_dac_e);
+    sm_config_set_out_shift(&c, true, true, 32);
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

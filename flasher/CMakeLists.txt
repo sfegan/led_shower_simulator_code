@@ -1,9 +1,13 @@
-add_executable(flasher
-        flasher.cpp menu.cpp event_generators.cpp event_dispatcher.cpp
-        )
+add_executable(flasher)
+
+pico_generate_pio_header(flasher ${CMAKE_CURRENT_LIST_DIR}/set_charges.pio)
+
+target_sources(flasher PRIVATE flasher.cpp menu.cpp 
+        event_generators.cpp event_dispatcher.cpp)
 
 # pull in common dependencies
-target_link_libraries(flasher pico_stdlib pico_multicore pico_sync)
+target_link_libraries(flasher PRIVATE
+        pico_stdlib pico_multicore pico_sync hardware_pio)
 target_compile_definitions(flasher PRIVATE)
 
 # create map/bin/hex file etc.
