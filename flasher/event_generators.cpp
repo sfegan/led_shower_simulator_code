@@ -38,7 +38,11 @@ void SingleLEDEventGenerator::generateNextEvent()
 
 uint32_t SingleLEDEventGenerator::nextEventDelay()
 {
-    return 1000000.0/freq_;
+    if(freq_mode_ == 0) {
+        return 1000000.0/freq_;
+    } else {
+        return -std::log(double(rand())/double(RAND_MAX))*(1000000.0/freq_);
+    }
 }
 
 uint32_t SingleLEDEventGenerator::nextEventPattern(uint32_t* array)
