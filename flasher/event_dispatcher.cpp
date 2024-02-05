@@ -18,6 +18,8 @@ void EventDispatcher::launch_dispatcher_thread()
 
 void EventDispatcher::run_dispatcher_loop()
 {
+    uint32_t x[128];
+
     // Choose which PIO instance to use (there are two instances)
     PIO pio = pio0;
 
@@ -36,15 +38,19 @@ void EventDispatcher::run_dispatcher_loop()
     bool state = 0;
     lock();
     while(run_dispatcher_) {
-        unlock();
         dispatcher_running_ = true;
-        gpio_put(PICO_DEFAULT_LED_PIN, state);
-        state = 1 - state;
-        uint x = rand() & 0xFFFF;
-        //x |= x<<16;
-        x <<= 16;
-        pio_sm_put_blocking(pio, sm, x);
-        sleep_ms(100);
+        if(generator_ and generator_->isEnabled()) {
+            uint32_t delay = generator_->nextEventDelay();
+            uint32_t nx = generator_->nextEventPattern(x);
+            unlock();
+            gpio_put(PICO_DEFAULT_LED_PIN, state);
+            state = 1 - state;
+            pio_sm_put_blocking(pio, sm, x[0]);
+            sleep_us(delay);
+        } else {
+            unlock();
+            sleep_us(100);            
+        }
         lock();
     }
     dispatcher_running_ = false;
@@ -70,4 +76,18 @@ bool EventDispatcher::is_dispatcher_running()
     bool running = dispatcher_running_;
     unlock();
     return running;
+}
+
+void EventDispatcher::clear_event_generator()
+{
+    lock();
+    generator_ = nullptr;
+    unlock();
+}
+
+void EventDispatcher::register_event_generator(EventGenerator* generator)
+{
+    lock();
+    generator_ = generator;
+    unlock();
 }

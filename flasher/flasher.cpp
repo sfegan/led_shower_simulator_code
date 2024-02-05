@@ -9,6 +9,7 @@
 
 #include "menu.hpp"
 #include "event_generators.hpp"
+#include "event_dispatcher.hpp"
 
 class KeypressMenu: public Menu {
 public:
@@ -294,5 +295,6 @@ int main()
 
     // EngineeringMenu menu;
     SingleLEDEventGenerator menu;
+    EventDispatcher::instance().register_event_generator(&menu);
     menu.event_loop();
 }

@@ -2,6 +2,8 @@
 
 #include<pico/sync.h>
 
+#include"event_generators.hpp"
+
 class EventDispatcher
 {
 public:
@@ -11,6 +13,9 @@ public:
 
     void lock() { mutex_enter_blocking(&mutex_); }
     void unlock() { mutex_exit(&mutex_); };
+
+    void clear_event_generator();
+    void register_event_generator(EventGenerator* generator);
 
     static EventDispatcher& instance() { 
         static EventDispatcher the_singleton;
@@ -24,6 +29,8 @@ private:
     void run_dispatcher_loop();
     static void launch_dispatcher_thread();
     
+    EventGenerator* generator_ = nullptr;
+
     bool run_dispatcher_ = false;
     bool dispatcher_running_ = false;
     mutex_t mutex_;

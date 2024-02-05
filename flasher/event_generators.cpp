@@ -2,6 +2,13 @@
 #include <pico/double.h>
 
 #include "event_generators.hpp"
+#include "event_dispatcher.hpp"
+
+template<typename T> void lock_and_set(T& variable, const T& value) {
+    EventDispatcher::instance().lock();
+    variable = value;
+    EventDispatcher::instance().unlock();
+}
 
 EventGenerator::~EventGenerator()
 {
@@ -17,6 +24,30 @@ SingleLEDEventGenerator::SingleLEDEventGenerator():
 SingleLEDEventGenerator::~SingleLEDEventGenerator()
 {
     // nothing to see here
+}
+
+bool SingleLEDEventGenerator::isEnabled()
+{
+    return enabled_;
+}
+
+void SingleLEDEventGenerator::generateNextEvent()
+{
+    // nothing to see here
+}
+
+uint32_t SingleLEDEventGenerator::nextEventDelay()
+{
+    return 1000000.0/freq_;
+}
+
+uint32_t SingleLEDEventGenerator::nextEventPattern(uint32_t* array)
+{
+    uint x = rand() & 0xFFFF;
+    if(amp_mode_ == 0)x = (x&0xFF00) | (amp_&0x00FF);
+    if(rc_mode_ == 0)x = (x&0x00FF) | ((ar_&0x000F)<<8) | ((ac_&0x000F)<<12);
+    array[0] = x;
+    return 1;
 }
 
 bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& return_code, 
@@ -48,6 +79,16 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
             else if(freq_ > 30 || key_count>10) { df = 1.0; }
             lock_and_set(freq_, std::max((std::floor(freq_/df + 0.5) - 1.0) * df, 0.0));
             set_freq_value();
+        }
+        break;
+    case '0': case '1': case '2': case '3': case '4': case '5':
+        if(key_count >= 10) {
+            double new_freq = 0.1;
+            while(key > '0') { new_freq *= 10.0; --key; }
+            if(freq_ != new_freq) {
+                lock_and_set(freq_, new_freq);
+                set_freq_value();
+            }
         }
         break;
     case 'A':
