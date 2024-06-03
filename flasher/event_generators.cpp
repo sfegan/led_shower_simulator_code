@@ -39,9 +39,9 @@ void SingleLEDEventGenerator::generateNextEvent()
 uint32_t SingleLEDEventGenerator::nextEventDelay()
 {
     if(freq_mode_ == 0) {
-        return 1000000.0/freq_;
+        return period_us_;
     } else {
-        return -std::log(double(rand())/double(RAND_MAX))*(1000000.0/freq_);
+        return -std::log(double(rand())/double(RAND_MAX))*period_us_;
     }
 }
 
@@ -70,6 +70,7 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
             else if(freq_ >= 300 || (freq_ >= 30 && key_count>10)) { df = 10.0; }
             else if(freq_ >= 30 || key_count>10) { df = 1.0; }
             lock_and_set(freq_, std::min((std::floor(freq_/df + 0.5) + 1.0) * df, 30000.0));
+            lock_and_set(period_us_, 1000000.0/freq_);
             set_freq_value();
         }
         break;
@@ -82,6 +83,7 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
             else if(freq_ > 300 || (freq_ > 30 && key_count>10)) { df = 10.0; }
             else if(freq_ > 30 || key_count>10) { df = 1.0; }
             lock_and_set(freq_, std::max((std::floor(freq_/df + 0.5) - 1.0) * df, 0.0));
+            lock_and_set(period_us_, 1000000.0/freq_);
             set_freq_value();
         }
         break;
@@ -91,6 +93,7 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
             while(key > '0') { new_freq *= 10.0; --key; }
             if(freq_ != new_freq) {
                 lock_and_set(freq_, new_freq);
+                lock_and_set(period_us_, 1000000.0/freq_);
                 set_freq_value();
             }
         }

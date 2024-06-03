@@ -87,6 +87,7 @@ private:
 
     int freq_mode_ = 0;
     double freq_ = 100; // Hz
+    double period_us_ = 1000000.0/freq_;
     int amp_mode_ = 0;
     int amp_ = 0;
     int rc_mode_ = 0;
