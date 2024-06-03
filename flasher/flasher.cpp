@@ -293,8 +293,8 @@ int main()
 
     EventDispatcher::instance().start_dispatcher();
 
-    // EngineeringMenu menu;
-    SingleLEDEventGenerator menu;
-    EventDispatcher::instance().register_event_generator(&menu);
+    EngineeringMenu menu;
+    // SingleLEDEventGenerator menu;
+    // EventDispatcher::instance().register_event_generator(&menu);
     menu.event_loop();
 }
