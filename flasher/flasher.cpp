@@ -118,11 +118,13 @@ private:
     void sync_values();
     void set_vdac_value(bool draw = true) { 
         menu_items_[MIP_VDAC].value = std::to_string(vdac_); 
-        if(draw)draw_item_value(MIP_VDAC); }
+        if(draw)draw_item_value(MIP_VDAC);
+    }
     void set_rc_value(bool draw = true) { 
         menu_items_[MIP_ROWCOL].value = std::string(1, char('A' + ar_)) 
             + std::to_string(ac_); 
-        if(draw)draw_item_value(MIP_ROWCOL); }
+        if(draw)draw_item_value(MIP_ROWCOL);
+    }
     void set_dac_e_value(bool draw = true) { 
         menu_items_[MIP_DAC_EN].value = dac_e_ ? ">ON<" : "off";
         menu_items_[MIP_DAC_EN].value_style = dac_e_ ? ANSI_INVERT : ""; 
@@ -142,7 +144,7 @@ private:
     int vdac_ = 0;
     int ac_ = 0;
     int ar_ = 0;
-    int trig_ = 0;
+    bool trig_ = 0;
     bool dac_e_ = 0;
     bool led_int_ = 0;
 };
@@ -185,7 +187,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
-   case 'Z':
+    case 'Z':
         vdac_ = 0;
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
@@ -230,17 +232,17 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
-     case 'D':
+    case 'D':
         dac_e_ = !dac_e_;
         gpio_put(DAC_EN_PIN, dac_e_ ? 1 : 0);
         set_dac_e_value();
         break;
-     case 'T':
+    case 'T':
         trig_ = !trig_;
         gpio_put(TRIG_PIN, trig_ ? 1 : 0);
         set_trig_value();
         break;
-     case 'P':
+    case 'P':
         gpio_put(TRIG_PIN, 1);
         gpio_put(TRIG_PIN, 0);
         trig_ = 1;
@@ -249,7 +251,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         trig_ = 0;
         set_trig_value();
         break;
-     case 'L':
+    case 'L':
         led_int_ = !led_int_;
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
         set_led_value();
