@@ -92,7 +92,7 @@ public:
 private:
     enum MenuItemPositions {
         MIP_VDAC       = 0,
-        MIP_ZERO,
+        MIP_ZERO_VDAC,
         MIP_ROWCOL,
         MIP_DAC_EN,
         MIP_TOGGLE_TRIG,
@@ -107,7 +107,7 @@ private:
     static std::vector<MenuItem> make_menu_items() {
         std::vector<MenuItem> menu_items(MIP_NUM_ITEMS);
         menu_items.at(MIP_VDAC)        = {"</>     : Increase/decrease DAC voltage", 3, "0"};
-        menu_items.at(MIP_ZERO)        = {"Z       : Zero DAC voltage", 0, ""};
+        menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC voltage", 0, ""};
         menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
         menu_items.at(MIP_DAC_EN)      = {"D       : Toggle DAC enabled", 4, "off"};
         menu_items.at(MIP_TOGGLE_TRIG) = {"T       : Toggle trigger", 4, "off"};
@@ -122,11 +122,13 @@ private:
     void sync_values();
     void set_vdac_value(bool draw = true) { 
         menu_items_[MIP_VDAC].value = std::to_string(vdac_); 
-        if(draw)draw_item_value(MIP_VDAC); }
+        if(draw)draw_item_value(MIP_VDAC);
+    }
     void set_rc_value(bool draw = true) { 
         menu_items_[MIP_ROWCOL].value = std::string(1, char('A' + ar_)) 
             + std::to_string(ac_); 
-        if(draw)draw_item_value(MIP_ROWCOL); }
+        if(draw)draw_item_value(MIP_ROWCOL);
+    }
     void set_dac_e_value(bool draw = true) { 
         menu_items_[MIP_DAC_EN].value = dac_e_ ? ">ON<" : "off";
         menu_items_[MIP_DAC_EN].value_style = dac_e_ ? ANSI_INVERT : ""; 
@@ -157,7 +159,7 @@ private:
     int vdac_ = 0;
     int ac_ = 0;
     int ar_ = 0;
-    int trig_ = 0;
+    bool trig_ = 0;
     bool dac_e_ = 0;
     bool led_int_ = 0;
     int dac_wr_ = 0;
@@ -206,7 +208,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
-   case 'Z':
+    case 'Z':
         vdac_ = 0;
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
