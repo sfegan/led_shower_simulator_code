@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#define ANSI_INVERT "\033[7m"
+
 class Menu {
 public:
     virtual ~Menu();
@@ -106,6 +108,7 @@ protected:
 class SimpleItemValueMenu: public FramedMenu {
 public:
     struct MenuItem {
+        MenuItem(): item(), max_value_size(), value(), value_style() {}
         MenuItem(const std::string& item_, int max_value_size_, const std::string& value_={});
         std::string item;
         int max_value_size;

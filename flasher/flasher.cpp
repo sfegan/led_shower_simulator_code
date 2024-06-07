@@ -11,6 +11,19 @@
 #include "event_generators.hpp"
 #include "event_dispatcher.hpp"
 
+enum Pins { VDAC_BASE_PIN       = 0,
+            ROW_A_BASE_PIN      = 8, 
+            COL_A_BASE_PIN      = 12,
+            DAC_EN_PIN          = 16,
+            TRIG_PIN            = 17,
+            SPI_CLK_PIN         = 18,
+            SPI_DOUT_PIN        = 19,
+            SPI_COL_EN_PIN      = 20,
+            SPI_ALL_EN_PIN      = 21,
+            SPARE_PIN           = 22,
+            DAC_WR_PIN          = 26,
+            DAC_SEL_BASE_PIN    = 27 };
+
 class KeypressMenu: public Menu {
 public:
     virtual ~KeypressMenu() { }
@@ -77,41 +90,53 @@ public:
     bool process_timeout(int& return_code) final;
 
 private:
+    enum MenuItemPositions {
+        MIP_VDAC       = 0,
+        MIP_ZERO,
+        MIP_ROWCOL,
+        MIP_DAC_EN,
+        MIP_TOGGLE_TRIG,
+        MIP_PULSE_TRIG,
+        MIP_LED,
+        MIP_KEYPRESS,
+        MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
+    };
+
     static std::vector<MenuItem> make_menu_items() {
-        std::vector<MenuItem> menu_items;
-        menu_items.emplace_back("</>     : Increase/decrease DAC voltage", 3, "0");
-        menu_items.emplace_back("Z       : Zero DAC voltage", 0, "");
-        menu_items.emplace_back("Cursors : Change column & row", 3, "A1");
-        menu_items.emplace_back("D       : Toggle DAC enabled", 4, "off");
-        menu_items.emplace_back("T       : Toggle trigger", 4, "off");
-        menu_items.emplace_back("P       : Pulse trigger", 0, "");
-        menu_items.emplace_back("L       : Toggle on-board LED", 4, "off");
-        menu_items.emplace_back("k       : Display keypress", 0);
-        //menu_items.emplace_back("Second test line", 0);
-        //menu_items.emplace_back("Third test line", 0);
+        std::vector<MenuItem> menu_items(MIP_NUM_ITEMS);
+        menu_items.at(MIP_VDAC)        = {"</>     : Increase/decrease DAC voltage", 3, "0"};
+        menu_items.at(MIP_ZERO)        = {"Z       : Zero DAC voltage", 0, ""};
+        menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
+        menu_items.at(MIP_DAC_EN)      = {"D       : Toggle DAC enabled", 4, "off"};
+        menu_items.at(MIP_TOGGLE_TRIG) = {"T       : Toggle trigger", 4, "off"};
+        menu_items.at(MIP_PULSE_TRIG)  = {"P       : Pulse trigger", 0, ""};
+        menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
+        menu_items.at(MIP_KEYPRESS)    = {"k       : Display keypress", 0, ""};
         return menu_items;
     }
 
     void sync_values();
     void set_vdac_value(bool draw = true) { 
-        menu_items_[0].value = std::to_string(vdac_); if(draw)draw_item_value(0); }
+        menu_items_[MIP_VDAC].value = std::to_string(vdac_); 
+        if(draw)draw_item_value(MIP_VDAC); }
     void set_rc_value(bool draw = true) { 
-        menu_items_[2].value = std::string(1, char('A' + ar_)) 
-            + std::to_string(ac_); if(draw)draw_item_value(2); }
+        menu_items_[MIP_ROWCOL].value = std::string(1, char('A' + ar_)) 
+            + std::to_string(ac_); 
+        if(draw)draw_item_value(MIP_ROWCOL); }
     void set_dac_e_value(bool draw = true) { 
-        menu_items_[3].value = dac_e_ ? ">ON<" : "off";
-        menu_items_[3].value_style = dac_e_ ? "\033[7m" : ""; 
-        if(draw)draw_item_value(3);
+        menu_items_[MIP_DAC_EN].value = dac_e_ ? ">ON<" : "off";
+        menu_items_[MIP_DAC_EN].value_style = dac_e_ ? ANSI_INVERT : ""; 
+        if(draw)draw_item_value(MIP_DAC_EN);
     }
     void set_trig_value(bool draw = true) { 
-        menu_items_[4].value = trig_ ? ">ON<" : "off"; 
-        menu_items_[4].value_style = trig_ ? "\033[7m" : "";
-        if(draw)draw_item_value(4); 
+        menu_items_[MIP_TOGGLE_TRIG].value = trig_ ? ">ON<" : "off"; 
+        menu_items_[MIP_TOGGLE_TRIG].value_style = trig_ ? ANSI_INVERT : "";
+        if(draw)draw_item_value(MIP_TOGGLE_TRIG); 
     }
     void set_led_value(bool draw = true) { 
-        menu_items_[6].value = led_int_ ? ">ON<" : "off"; 
-        menu_items_[6].value_style = led_int_ ? "\033[7m" : "";
-        if(draw)draw_item_value(6); 
+        menu_items_[MIP_LED].value = led_int_ ? ">ON<" : "off"; 
+        menu_items_[MIP_LED].value_style = led_int_ ? ANSI_INVERT : "";
+        if(draw)draw_item_value(MIP_LED); 
     }
 
     int vdac_ = 0;
@@ -131,12 +156,12 @@ EngineeringMenu::EngineeringMenu() :
 void EngineeringMenu::sync_values()
 {
     unsigned all_gpio = gpio_get_all();
-    vdac_ = all_gpio&0x0000FF;
-    ar_ = (all_gpio>>8)&0x00000F;
-    ac_ = (all_gpio>>12)&0x00000F;
-    trig_ = (all_gpio>>19)&0x000001;
-    dac_e_ = (all_gpio>>20)&0x000001;
-    led_int_ = (all_gpio>>PICO_DEFAULT_LED_PIN)&0x000001;
+    vdac_    = (all_gpio >> VDAC_BASE_PIN)  & 0x0000FF;
+    ar_      = (all_gpio >> ROW_A_BASE_PIN) & 0x00000F;
+    ac_      = (all_gpio >> COL_A_BASE_PIN) & 0x00000F;
+    trig_    = (all_gpio >> TRIG_PIN)       & 0x000001;
+    dac_e_   = (all_gpio >> DAC_EN_PIN)     & 0x000001;
+    led_int_ = (all_gpio >> PICO_DEFAULT_LED_PIN) & 0x000001;
     set_vdac_value(false);
     set_rc_value(false);
     set_dac_e_value(false);
@@ -151,73 +176,73 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     case '>':
     case '+':
         vdac_ = std::min(vdac_ + (key_count >= 15 ? 5 : 1), 255);
-        gpio_put_masked(0x0000FF, vdac_ & 0x0000FF);
+        gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
     case '<':
     case '-':
         vdac_ = std::max(vdac_ - (key_count >= 15 ? 5 : 1), 0);
-        gpio_put_masked(0x0000FF, vdac_ & 0x0000FF);
+        gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
    case 'Z':
         vdac_ = 0;
-        gpio_put_masked(0x0000FF, vdac_ & 0x0000FF);
+        gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
     case KEY_UP:
         ar_ = std::max(ar_-1, 0);
-        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_DOWN:
         ar_ = std::min(ar_+1, 15);
-        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_LEFT:
         ac_ = std::max(ac_-1, 0);
-        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_RIGHT:
         ac_ = std::min(ac_+1, 15);
-        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_PAGE_UP:
         ar_ = 0;
-        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_PAGE_DOWN:
         ar_ = 15;
-        gpio_put_masked(0x000F00, ar_<<8 & 0x000F00);
+        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_HOME:
         ac_ = 0;
-        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_END:
         ac_ = 15;
-        gpio_put_masked(0x00F000, ac_<<12 & 0x00F000);
+        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
      case 'D':
         dac_e_ = !dac_e_;
-        gpio_put(20, dac_e_ ? 1 : 0);
+        gpio_put(DAC_EN_PIN, dac_e_ ? 1 : 0);
         set_dac_e_value();
         break;
      case 'T':
         trig_ = !trig_;
-        gpio_put(19, trig_ ? 1 : 0);
+        gpio_put(TRIG_PIN, trig_ ? 1 : 0);
         set_trig_value();
         break;
      case 'P':
-        gpio_put(19, 1);
-        gpio_put(19, 0);
+        gpio_put(TRIG_PIN, 1);
+        gpio_put(TRIG_PIN, 0);
         trig_ = 1;
         set_trig_value();
         sleep_ms(100);
@@ -279,15 +304,26 @@ bool EngineeringMenu::process_timeout(int& return_code)
 
 int main()
 {
-    const uint LED_PIN = PICO_DEFAULT_LED_PIN;
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    gpio_put(PICO_DEFAULT_LED_PIN, 1);
 
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-    gpio_put(LED_PIN, 1);
+    uint32_t pin_mask =
+        (0xFFU << VDAC_BASE_PIN) 
+        | (0xFU << ROW_A_BASE_PIN)
+        | (0xFU << COL_A_BASE_PIN)
+        | (0x1U << DAC_EN_PIN)
+        | (0x1U << TRIG_PIN)
+        | (0x1U << SPI_CLK_PIN)
+        | (0x1U << SPI_DOUT_PIN)
+        | (0x1U << SPI_COL_EN_PIN)
+        | (0x1U << SPI_ALL_EN_PIN)
+        | (0x1U << DAC_WR_PIN)
+        | (0x3U << DAC_SEL_BASE_PIN);
 
-    gpio_init_mask(0x0018FFFF);
-    gpio_set_dir_out_masked(0x0018FFFF);
-    gpio_clr_mask(0x0018FFFF);
+    gpio_init_mask(pin_mask);
+    gpio_clr_mask(pin_mask);
+    gpio_set_dir_out_masked(pin_mask);
 
     stdio_init_all();
 

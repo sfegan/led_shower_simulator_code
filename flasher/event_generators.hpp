@@ -81,7 +81,7 @@ private:
 
     void set_enabled_value(bool draw = true) { 
         menu_items_[7].value = enabled_ ? ">ON<" : "off"; 
-        menu_items_[7].value_style = enabled_ ? "\033[7m" : "";
+        menu_items_[7].value_style = enabled_ ? ANSI_INVERT : "";
         if(draw)draw_item_value(7); 
     }
 
