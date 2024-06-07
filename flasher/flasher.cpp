@@ -99,6 +99,8 @@ private:
         MIP_PULSE_TRIG,
         MIP_LED,
         MIP_KEYPRESS,
+        MIP_DAC_WR,
+        MIP_DAC_SEL,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
 
@@ -112,6 +114,8 @@ private:
         menu_items.at(MIP_PULSE_TRIG)  = {"P       : Pulse trigger", 0, ""};
         menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
         menu_items.at(MIP_KEYPRESS)    = {"k       : Display keypress", 0, ""};
+        menu_items.at(MIP_DAC_WR)      = {"W       : Something", 4, "off"};
+        menu_items.at(MIP_DAC_SEL)     = {"S/s     : Next DAC/Skip 1 DAC", 5, "MAIN"};
         return menu_items;
     }
 
@@ -138,13 +142,26 @@ private:
         menu_items_[MIP_LED].value_style = led_int_ ? ANSI_INVERT : "";
         if(draw)draw_item_value(MIP_LED); 
     }
-
+    void set_dac_wr_value(bool draw = true) { 
+        menu_items_[MIP_DAC_WR].value = dac_wr_ ? ">ON<" : "off"; 
+        menu_items_[MIP_DAC_WR].value_style = dac_wr_ ? ANSI_INVERT : "";
+        //std::to_string(dac_wr_);
+        if(draw)draw_item_value(MIP_DAC_WR); 
+    }
+    void set_dac_sel_value(bool draw = true) { 
+        static const char* name[]= {"MAIN", "SCALE", "SPARE", "TRIM"};
+        menu_items_[MIP_DAC_SEL].value = name[dac_sel_]; 
+        if(draw)draw_item_value(MIP_DAC_SEL);
+    }
+   
     int vdac_ = 0;
     int ac_ = 0;
     int ar_ = 0;
     int trig_ = 0;
     bool dac_e_ = 0;
     bool led_int_ = 0;
+    int dac_wr_ = 0;
+    int dac_sel_ = 0;
 };
 
 EngineeringMenu::EngineeringMenu() : 
@@ -162,11 +179,15 @@ void EngineeringMenu::sync_values()
     trig_    = (all_gpio >> TRIG_PIN)       & 0x000001;
     dac_e_   = (all_gpio >> DAC_EN_PIN)     & 0x000001;
     led_int_ = (all_gpio >> PICO_DEFAULT_LED_PIN) & 0x000001;
+    dac_wr_  = (all_gpio >> DAC_WR_PIN)     & 0x000001;
+    dac_sel_ = (all_gpio >> DAC_SEL_BASE_PIN) & 0x000001;
     set_vdac_value(false);
     set_rc_value(false);
     set_dac_e_value(false);
     set_trig_value(false);
     set_led_value(false);
+    set_dac_wr_value(false);
+    set_dac_sel_value(false);
 }
 
 bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code,
@@ -230,17 +251,17 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
-     case 'D':
+    case 'D':
         dac_e_ = !dac_e_;
         gpio_put(DAC_EN_PIN, dac_e_ ? 1 : 0);
         set_dac_e_value();
         break;
-     case 'T':
+    case 'T':
         trig_ = !trig_;
         gpio_put(TRIG_PIN, trig_ ? 1 : 0);
         set_trig_value();
         break;
-     case 'P':
+    case 'P':
         gpio_put(TRIG_PIN, 1);
         gpio_put(TRIG_PIN, 0);
         trig_ = 1;
@@ -249,11 +270,28 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         trig_ = 0;
         set_trig_value();
         break;
-     case 'L':
+    case 'L':
         led_int_ = !led_int_;
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
         set_led_value();
         break;
+    case 'W':
+        dac_wr_ = !dac_wr_;
+        gpio_put(DAC_WR_PIN, dac_wr_ ? 1 : 0);
+        set_dac_wr_value();
+        break;
+    case 'S':
+        dac_sel_ = (dac_sel_+1) % 4;
+        gpio_put_masked(0x000001 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);
+        set_dac_sel_value();
+        break;
+    case 's':
+        dac_sel_ = (dac_sel_+1) % 4;
+        if (dac_sel_ == 2) {dac_sel_ = dac_sel_+1;}
+        gpio_put_masked(0x000001 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);
+        set_dac_sel_value();
+        break;
+
     case 'k':
     case 'K':
     case 11: // ctrl-K
