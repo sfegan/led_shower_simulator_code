@@ -92,7 +92,7 @@ public:
 private:
     enum MenuItemPositions {
         MIP_VDAC       = 0,
-        MIP_ZERO,
+        MIP_ZERO_VDAC,
         MIP_ROWCOL,
         MIP_DAC_EN,
         MIP_TOGGLE_TRIG,
@@ -105,7 +105,7 @@ private:
     static std::vector<MenuItem> make_menu_items() {
         std::vector<MenuItem> menu_items(MIP_NUM_ITEMS);
         menu_items.at(MIP_VDAC)        = {"</>     : Increase/decrease DAC voltage", 3, "0"};
-        menu_items.at(MIP_ZERO)        = {"Z       : Zero DAC voltage", 0, ""};
+        menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC voltage", 0, ""};
         menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
         menu_items.at(MIP_DAC_EN)      = {"D       : Toggle DAC enabled", 4, "off"};
         menu_items.at(MIP_TOGGLE_TRIG) = {"T       : Toggle trigger", 4, "off"};
