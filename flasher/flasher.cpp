@@ -24,9 +24,6 @@ enum Pins { VDAC_BASE_PIN       = 0,
             DAC_WR_PIN          = 26,
             DAC_SEL_BASE_PIN    = 27 };
 
-//  ^
-// / \ 
-
 class KeypressMenu: public Menu {
 public:
     virtual ~KeypressMenu() { }
@@ -218,9 +215,6 @@ private:
     int spi_col_en_ = 0;
     int spi_all_en_ = 0;
 };
-
-//  ^
-// / \ 
 
 EngineeringMenu::EngineeringMenu() : 
     SimpleItemValueMenu(make_menu_items(), "Engineering menu") 
