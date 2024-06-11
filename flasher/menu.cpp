@@ -157,11 +157,13 @@ bool Menu::draw_title(const std::string& title, int fh, int fw, int fr, int fc,
 
 int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
 {
+    static const int64_t multi_keypress_timeout = 100000; /* 100ms */
     absolute_time_t next_timer = delayed_by_us(get_absolute_time(), timer_interval_us_);
     uint64_t timer_delay = timer_interval_us_;
     int return_code = 0;
     bool was_connected = false;
     int last_key = -1;
+    absolute_time_t last_key_time = get_absolute_time();
     int key_count = 0;
     bool sent_request_window_size = false;
     std::string escape_sequence;
@@ -169,6 +171,7 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
     while(true) {
         if(stdio_usb_connected()) {
             if(!was_connected) {
+                last_key_time = get_absolute_time();
                 if(!this->controller_connected(return_code)) {
                     return return_code;
                 }
@@ -181,7 +184,26 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
             }
             was_connected = true;
             int key = getchar_timeout_us(timer_delay);
-            if(key >= 0) { 
+            absolute_time_t key_time = get_absolute_time();
+            if(absolute_time_diff_us(last_key_time, key_time)>multi_keypress_timeout) {
+                last_key = -1;
+                key_count = 0;
+                if(sent_request_window_size) {
+                    this->redraw();
+                    sent_request_window_size = false;
+                }
+                if(!escape_sequence.empty()) {
+                    for(auto k : escape_sequence) {
+                        if(!this->process_key_press(k, 1, return_code, {})) {
+                            return return_code;
+                        }
+                    }
+                    escape_sequence.clear();
+                    escape_sequence_parameters.clear();
+                }
+            }
+            if(key >= 0) {
+                last_key_time = key_time;
                 if(!escape_sequence.empty()) {
                     int escaped_key =
                         decode_partial_escape_sequence(key, escape_sequence,    
@@ -248,6 +270,8 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                         break;
                     }
                 } else if(enable_escape_sequences and key == '\033') {
+                    last_key = -1;
+                    key_count = 0;
                     escape_sequence.push_back(key);
                 } else if(key == '\014') {
                     last_key = -1;
@@ -280,33 +304,22 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                         return return_code;
                     }                        
                 }
+                last_key_time = key_time;
             } else { /* timer occurred */
-                if(sent_request_window_size) {
-                    this->redraw();
-                    sent_request_window_size = false;
-                }
-                if(!escape_sequence.empty()) {
-                    for(auto k : escape_sequence) {
-                        if(!this->process_key_press(k, 1, return_code, {})) {
-                            return return_code;
-                        }
-                    }
-                    escape_sequence.clear();
-                    escape_sequence_parameters.clear();
-                }
-                last_key = -1;
-                key_count = 0;
+                // nothing happens here anymore
             }
         } else {
             if(was_connected) {
                 if(!this->controller_disconnected(return_code)) {
                     return return_code;
                 }
+                was_connected = false;
+                escape_sequence.clear();
+                escape_sequence_parameters.clear();
+                sent_request_window_size = false;
+                last_key = -1;
+                key_count = 0;
             }
-            was_connected = false;
-            escape_sequence.clear();
-            escape_sequence_parameters.clear();
-            sent_request_window_size = false;
             sleep_us(1000);
         }
 
