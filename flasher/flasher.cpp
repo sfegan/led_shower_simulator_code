@@ -11,6 +11,9 @@
 #include "event_generators.hpp"
 #include "event_dispatcher.hpp"
 
+// \ /
+//  V
+
 enum Pins { VDAC_BASE_PIN       = 0,
             ROW_A_BASE_PIN      = 8, 
             COL_A_BASE_PIN      = 12,
@@ -23,6 +26,9 @@ enum Pins { VDAC_BASE_PIN       = 0,
             SPARE_PIN           = 22,
             DAC_WR_PIN          = 26,
             DAC_SEL_BASE_PIN    = 27 };
+
+//  ^
+// / \ 
 
 class KeypressMenu: public Menu {
 public:
@@ -94,6 +100,8 @@ bool KeypressMenu::process_timeout(bool controller_is_connected, int& return_cod
         puts_raw_nonl(buffer); \
     }
 
+// \ /
+//  V
 
 class EngineeringMenu: public SimpleItemValueMenu {
 public:
@@ -117,6 +125,10 @@ private:
         MIP_KEYPRESS,
         MIP_DAC_WR,
         MIP_DAC_SEL,
+        MIP_SPI_CLK,
+        MIP_SPI_DOUT,
+        MIP_SPI_COL_EN,
+        MIP_SPI_ALL_EN,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
 
@@ -130,8 +142,12 @@ private:
         menu_items.at(MIP_PULSE_TRIG)  = {"P       : Pulse trigger", 0, ""};
         menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
         menu_items.at(MIP_KEYPRESS)    = {"k       : Display keypress", 0, ""};
-        menu_items.at(MIP_DAC_WR)      = {"W       : Something", 4, "off"};
+        menu_items.at(MIP_DAC_WR)      = {"W       : Toggle DAC_WR", 4, "off"};
         menu_items.at(MIP_DAC_SEL)     = {"S/s     : Next DAC/Skip 1 DAC", 5, "MAIN"};
+        menu_items.at(MIP_SPI_CLK)     = {"R       : Toggle SPI_CLK", 4, "off"};
+        menu_items.at(MIP_SPI_DOUT)    = {"E       : Toggle SPI_DOUT", 4, "off"};
+        menu_items.at(MIP_SPI_COL_EN)  = {"Y       : Toggle SPI_COL_EN", 4, "off"};
+        menu_items.at(MIP_SPI_ALL_EN)  = {"F       : Toggle SPI_ALL_EN", 4, "off"};
         return menu_items;
     }
 
@@ -171,6 +187,26 @@ private:
         menu_items_[MIP_DAC_SEL].value = name[dac_sel_]; 
         if(draw)draw_item_value(MIP_DAC_SEL);
     }
+    void set_spi_clk_value(bool draw = true) { 
+        menu_items_[MIP_SPI_CLK].value = spi_clk_ ? ">ON<" : "off"; 
+        menu_items_[MIP_SPI_CLK].value_style = spi_clk_ ? ANSI_INVERT : "";
+        if(draw)draw_item_value(MIP_SPI_CLK); 
+    }
+    void set_spi_dout_value(bool draw = true) { 
+        menu_items_[MIP_SPI_DOUT].value = spi_dout_ ? ">ON<" : "off"; 
+        menu_items_[MIP_SPI_DOUT].value_style = spi_dout_ ? ANSI_INVERT : "";
+        if(draw)draw_item_value(MIP_SPI_DOUT); 
+    }
+    void set_spi_col_en_value(bool draw = true) { 
+        menu_items_[MIP_SPI_COL_EN].value = spi_col_en_ ? ">ON<" : "off"; 
+        menu_items_[MIP_SPI_COL_EN].value_style = spi_col_en_ ? ANSI_INVERT : "";
+        if(draw)draw_item_value(MIP_SPI_COL_EN); 
+    }
+    void set_spi_all_en_value(bool draw = true) { 
+        menu_items_[MIP_SPI_ALL_EN].value = spi_all_en_ ? ">ON<" : "off"; 
+        menu_items_[MIP_SPI_ALL_EN].value_style = spi_all_en_ ? ANSI_INVERT : "";
+        if(draw)draw_item_value(MIP_SPI_ALL_EN); 
+    }
    
     int vdac_ = 0;
     int ac_ = 0;
@@ -180,7 +216,14 @@ private:
     bool led_int_ = 0;
     int dac_wr_ = 0;
     int dac_sel_ = 0;
+    int spi_clk_ = 0;
+    int spi_dout_ = 0;
+    int spi_col_en_ = 0;
+    int spi_all_en_ = 0;
 };
+
+//  ^
+// / \ 
 
 EngineeringMenu::EngineeringMenu() : 
     SimpleItemValueMenu(make_menu_items(), "Engineering menu") 
@@ -198,7 +241,11 @@ void EngineeringMenu::sync_values()
     dac_e_   = (all_gpio >> DAC_EN_PIN)     & 0x000001;
     led_int_ = (all_gpio >> PICO_DEFAULT_LED_PIN) & 0x000001;
     dac_wr_  = (all_gpio >> DAC_WR_PIN)     & 0x000001;
-    dac_sel_ = (all_gpio >> DAC_SEL_BASE_PIN) & 0x000001;
+    dac_sel_ = (all_gpio >> DAC_SEL_BASE_PIN) & 0x000003;
+    spi_clk_ = (all_gpio >> SPI_CLK_PIN)    & 0x000001;
+    spi_dout_ = (all_gpio >> SPI_DOUT_PIN)   & 0x000001;
+    spi_col_en_ = (all_gpio >> SPI_COL_EN_PIN) & 0x000001;
+    spi_all_en_ = (all_gpio >> SPI_ALL_EN_PIN) & 0x000001;
     set_vdac_value(false);
     set_rc_value(false);
     set_dac_e_value(false);
@@ -206,6 +253,10 @@ void EngineeringMenu::sync_values()
     set_led_value(false);
     set_dac_wr_value(false);
     set_dac_sel_value(false);
+    set_spi_clk_value(false);
+    set_spi_dout_value(false);
+    set_spi_col_en_value(false);
+    set_spi_all_en_value(false);
 }
 
 bool EngineeringMenu::controller_connected(int& return_code)
@@ -312,18 +363,36 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
     case 'S':
         dac_sel_ = (dac_sel_+1) % 4;
-        gpio_put_masked(0x000001 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);
+        gpio_put_masked(0x000003 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);
         set_dac_sel_value();
         break;
     case 's':
         dac_sel_ = (dac_sel_+1) % 4;
         if (dac_sel_ == 2) {dac_sel_ = dac_sel_+1;}
-        gpio_put_masked(0x000001 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);
+        gpio_put_masked(0x000003 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);
         set_dac_sel_value();
         break;
+    case 'E':
+        spi_clk_ = !spi_clk_;
+        gpio_put(SPI_CLK_PIN, spi_clk_ ? 1 : 0);
+        set_spi_clk_value();
+        break;
+    case 'R':
+        spi_dout_ = !spi_dout_;
+        gpio_put(SPI_DOUT_PIN, spi_dout_ ? 1 : 0);
+        set_spi_dout_value();
+        break;
+    case 'Y':
+        spi_col_en_ = !spi_col_en_;
+        gpio_put(SPI_COL_EN_PIN, spi_col_en_ ? 1 : 0);
+        set_spi_col_en_value();
+        break;
+    case 'F':
+        spi_all_en_ = !spi_all_en_;
+        gpio_put(SPI_ALL_EN_PIN, spi_all_en_ ? 1 : 0);
+        set_spi_all_en_value();
+        break;
 
-    case 'k':
-    case 'K':
     case 11: // ctrl-K
         {
             KeypressMenu key_menu;
