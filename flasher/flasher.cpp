@@ -94,9 +94,6 @@ bool KeypressMenu::process_timeout(bool controller_is_connected, int& return_cod
         puts_raw_nonl(buffer); \
     }
 
-// \ /
-//  V
-
 class EngineeringMenu: public SimpleItemValueMenu {
 public:
     EngineeringMenu();
