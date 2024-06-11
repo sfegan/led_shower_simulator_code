@@ -27,7 +27,7 @@ public:
     bool controller_disconnected(int& return_code) final;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) final;
-    bool process_timeout(bool controller_is_connected, int& return_code) final;
+    bool process_timer(bool controller_is_connected, int& return_code) final;
 
 private:
     static std::vector<MenuItem> make_menu_items() {

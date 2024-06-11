@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cctype>
 
+#include <pico/time.h>
 #include <pico/stdlib.h>
 #include <hardware/watchdog.h>
 
@@ -156,17 +157,21 @@ bool Menu::draw_title(const std::string& title, int fh, int fw, int fr, int fc,
 
 int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
 {
+    absolute_time_t next_timer = delayed_by_us(get_absolute_time(), timer_interval_us_);
+    uint64_t timer_delay = timer_interval_us_;
     int return_code = 0;
-    bool continue_looping = true;
     bool was_connected = false;
     int last_key = -1;
     int key_count = 0;
     bool sent_request_window_size = false;
     std::string escape_sequence;
     std::vector<std::string> escape_sequence_parameters;
-    while(continue_looping) {
+    while(true) {
         if(stdio_usb_connected()) {
             if(!was_connected) {
+                if(!this->controller_connected(return_code)) {
+                    return return_code;
+                }
                 if(enable_escape_sequences) {
                     this->send_request_screen_size();
                     sent_request_window_size = true;
@@ -175,7 +180,7 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                 }
             }
             was_connected = true;
-            int key = getchar_timeout_us(100000);
+            int key = getchar_timeout_us(timer_delay);
             if(key >= 0) { 
                 if(!escape_sequence.empty()) {
                     int escaped_key =
@@ -184,8 +189,9 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                     switch(escaped_key) {
                     case FAILED_ESCAPE_SEQUENCE:
                         for(auto k : escape_sequence) {
-                            continue_looping = this->process_key_press(k, 1, return_code, {});
-                            if(!continue_looping)return return_code;
+                            if(!this->process_key_press(k, 1, return_code, {})) {
+                                return return_code;
+                            }
                         }
                         last_key = -1;
                         key_count = 0;
@@ -212,8 +218,11 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                         } else {
                             last_key = -1;
                             key_count = 0;
-                            continue_looping = this->process_key_press(escaped_key, 1, 
-                                return_code, escape_sequence_parameters);
+                            if(!this->process_key_press(escaped_key, 1, 
+                                return_code, escape_sequence_parameters))
+                            {
+                                return return_code;
+                            }
                         }
                         escape_sequence.clear();
                         escape_sequence_parameters.clear();
@@ -229,8 +238,11 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                             last_key = escaped_key;
                             key_count = 1;
                         }
-                        continue_looping = this->process_key_press(escaped_key, key_count, 
-                            return_code, escape_sequence_parameters);
+                        if(!this->process_key_press(escaped_key, key_count, 
+                            return_code, escape_sequence_parameters))
+                        {
+                            return return_code;
+                        }
                         escape_sequence.clear();
                         escape_sequence_parameters.clear();
                         break;
@@ -263,33 +275,49 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                         last_key = key;
                         key_count = 1;
                     }
-                    continue_looping = this->process_key_press(key, key_count, return_code, 
-                        escape_sequence_parameters);
+                    if(!this->process_key_press(key, key_count, return_code, 
+                            escape_sequence_parameters)) {
+                        return return_code;
+                    }                        
                 }
-            } else {
+            } else { /* timer occurred */
                 if(sent_request_window_size) {
                     this->redraw();
                     sent_request_window_size = false;
                 }
                 if(!escape_sequence.empty()) {
                     for(auto k : escape_sequence) {
-                        continue_looping = this->process_key_press(k, 1, return_code, {});
-                        if(!continue_looping)return return_code;
+                        if(!this->process_key_press(k, 1, return_code, {})) {
+                            return return_code;
+                        }
                     }
                     escape_sequence.clear();
                     escape_sequence_parameters.clear();
                 }
                 last_key = -1;
                 key_count = 0;
-                continue_looping = this->process_timeout(true, return_code);
             }
         } else {
+            if(was_connected) {
+                if(!this->controller_disconnected(return_code)) {
+                    return return_code;
+                }
+            }
             was_connected = false;
             escape_sequence.clear();
             escape_sequence_parameters.clear();
             sent_request_window_size = false;
             sleep_us(1000);
         }
+
+        if(timer_delay <= 0) {
+            if(!this->process_timer(was_connected, return_code)) {
+                return return_code;
+            }
+            next_timer = delayed_by_us(next_timer, timer_interval_us_);
+        }
+        timer_delay = 
+            std::max(absolute_time_diff_us(get_absolute_time(), next_timer), 0LL);
     }
     return return_code;
 }
@@ -568,7 +596,7 @@ void SimpleItemValueMenu::draw_item_value(unsigned iitem)
 }
 
 RebootMenu::RebootMenu(Menu* base_menu): 
-    FramedMenu("Reboot",7,40,0), base_menu_(base_menu) 
+    FramedMenu("Reboot",7,40,0), base_menu_(base_menu)
 { 
     cls_on_redraw_ = false;
     if(base_menu) { 
@@ -598,14 +626,13 @@ bool RebootMenu::process_key_press(int key, int key_count, int& return_code,
             watchdog_enable(1,false);
             while(1);
         }
-        timeout_ = 0;
+        timer_calls_ = 0;
         return true;
     } else {
         return_code = 0;
         return false;
     }
 }
-
 
 bool RebootMenu::controller_connected(int& return_code)
 {
@@ -618,14 +645,14 @@ bool RebootMenu::controller_disconnected(int& return_code)
     return false;
 }
 
-bool RebootMenu::process_timeout(bool controller_is_connected, int& return_code)
+bool RebootMenu::process_timer(bool controller_is_connected, int& return_code)
 {
-    if(not controller_is_connected or timeout_>5)
+    if(not controller_is_connected or timer_calls_>50)
     {
         return_code = 0;
         return false;
     }
-    ++timeout_;
+    ++timer_calls_;
     return true;
 }
 

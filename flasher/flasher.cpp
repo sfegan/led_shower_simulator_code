@@ -32,7 +32,7 @@ public:
     bool controller_disconnected(int& return_code) final;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) final;
-    bool process_timeout(bool controller_is_connected, int& return_code) final;
+    bool process_timer(bool controller_is_connected, int& return_code) final;
 };
 
 void KeypressMenu::redraw()
@@ -81,7 +81,7 @@ bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
     return key != '\004';
 }
 
-bool KeypressMenu::process_timeout(bool controller_is_connected, int& return_code)
+bool KeypressMenu::process_timer(bool controller_is_connected, int& return_code)
 {
     return_code = 0;
     return true;
@@ -102,7 +102,7 @@ public:
     bool controller_disconnected(int& return_code) final;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) final;
-    bool process_timeout(bool controller_is_connected, int& return_code) final;
+    bool process_timer(bool controller_is_connected, int& return_code) final;
 
 private:
     enum MenuItemPositions {
@@ -422,7 +422,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     return true;
 }
 
-bool EngineeringMenu::process_timeout(bool controller_is_connected, int& return_code)
+bool EngineeringMenu::process_timer(bool controller_is_connected, int& return_code)
 {
     return_code = 0;
     return true;

@@ -13,7 +13,7 @@ public:
     virtual bool controller_disconnected(int& return_code) = 0;
     virtual bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) = 0;
-    virtual bool process_timeout(bool controller_is_connected, int& return_code) = 0;
+    virtual bool process_timer(bool controller_is_connected, int& return_code) = 0;
 
     int event_loop(bool enable_escape_sequences = true, bool enable_reboot = true);
 
@@ -31,6 +31,7 @@ public:
 
     static int default_screen_width() { return 80; }
     static int default_screen_height() { return 24; }
+    static uint64_t default_timer_interval_us() { return 10000; } /* 100Hz */
 
     static void cls();
     static void show_cursor();
@@ -74,8 +75,9 @@ public:
     static const int CURSOR_POSITION_REPORT      = 1100;
 
 protected:
-    int screen_w_ = default_screen_width();
-    int screen_h_ = default_screen_height();
+    uint64_t timer_interval_us_ = default_timer_interval_us();
+    int screen_w_                 = default_screen_width();
+    int screen_h_                 = default_screen_height();
 
 private:
     static int decode_partial_escape_sequence(int key, std::string& escape_sequence, 
@@ -151,9 +153,9 @@ public:
     bool controller_disconnected(int& return_code) override;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) override;
-    bool process_timeout(bool controller_is_connected, int& return_code) override;
+    bool process_timer(bool controller_is_connected, int& return_code) override;
 private:
     Menu* base_menu_ = nullptr;
     int dots_ = 0;
-    int timeout_ = 0;
+    int timer_calls_ = 0;
 };
