@@ -28,9 +28,11 @@ class KeypressMenu: public Menu {
 public:
     virtual ~KeypressMenu() { }
     void redraw() override;
-    bool process_key_press(int key, int key_count, int& return_code, 
-        const std::vector<std::string>& escape_sequence_parameters) override;
-    bool process_timeout(int& return_code) override;
+    bool controller_connected(int& return_code) final;
+    bool controller_disconnected(int& return_code) final;
+    bool process_key_press(int key, int key_count, int& return_code,
+        const std::vector<std::string>& escape_sequence_parameters) final;
+    bool process_timeout(bool controller_is_connected, int& return_code) final;
 };
 
 void KeypressMenu::redraw()
@@ -38,6 +40,18 @@ void KeypressMenu::redraw()
     cls();
     curpos(1,1);
     puts("Type some keys (terminate with Ctrl-D)");
+}
+
+bool KeypressMenu::controller_connected(int& return_code)
+{
+    return_code = 0;
+    return true;
+}
+
+bool KeypressMenu::controller_disconnected(int& return_code)
+{
+    return_code = 0;
+    return true;
 }
 
 bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
@@ -67,7 +81,7 @@ bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
     return key != '\004';
 }
 
-bool KeypressMenu::process_timeout(int& return_code)
+bool KeypressMenu::process_timeout(bool controller_is_connected, int& return_code)
 {
     return_code = 0;
     return true;
@@ -85,9 +99,11 @@ class EngineeringMenu: public SimpleItemValueMenu {
 public:
     EngineeringMenu();
     virtual ~EngineeringMenu() { }
-    bool process_key_press(int key, int key_count, int& return_code, 
+    bool controller_connected(int& return_code) final;
+    bool controller_disconnected(int& return_code) final;
+    bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) final;
-    bool process_timeout(int& return_code) final;
+    bool process_timeout(bool controller_is_connected, int& return_code) final;
 
 private:
     enum MenuItemPositions {
@@ -190,6 +206,18 @@ void EngineeringMenu::sync_values()
     set_led_value(false);
     set_dac_wr_value(false);
     set_dac_sel_value(false);
+}
+
+bool EngineeringMenu::controller_connected(int& return_code)
+{
+    return_code = 0;
+    return true;
+}
+
+bool EngineeringMenu::controller_disconnected(int& return_code)
+{
+    return_code = 0;
+    return true;
 }
 
 bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code,
@@ -337,8 +365,9 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     return true;
 }
 
-bool EngineeringMenu::process_timeout(int& return_code)
+bool EngineeringMenu::process_timeout(bool controller_is_connected, int& return_code)
 {
+    return_code = 0;
     return true;
 }
 

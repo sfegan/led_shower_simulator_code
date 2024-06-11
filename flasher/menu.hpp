@@ -9,9 +9,11 @@ class Menu {
 public:
     virtual ~Menu();
     virtual void redraw() = 0;
+    virtual bool controller_connected(int& return_code) = 0;
+    virtual bool controller_disconnected(int& return_code) = 0;
     virtual bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) = 0;
-    virtual bool process_timeout(int& return_code) = 0;
+    virtual bool process_timeout(bool controller_is_connected, int& return_code) = 0;
 
     int event_loop(bool enable_escape_sequences = true, bool enable_reboot = true);
 
@@ -145,9 +147,11 @@ public:
     RebootMenu(Menu* base_menu = nullptr);
     virtual ~RebootMenu() { }
     void redraw() override;
-    bool process_key_press(int key, int key_count, int& return_code, 
+    bool controller_connected(int& return_code) override;
+    bool controller_disconnected(int& return_code) override;
+    bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters) override;
-    bool process_timeout(int& return_code) override;
+    bool process_timeout(bool controller_is_connected, int& return_code) override;
 private:
     Menu* base_menu_ = nullptr;
     int dots_ = 0;

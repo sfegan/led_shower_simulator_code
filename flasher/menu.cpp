@@ -281,7 +281,7 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                 }
                 last_key = -1;
                 key_count = 0;
-                continue_looping = this->process_timeout(return_code);
+                continue_looping = this->process_timeout(true, return_code);
             }
         } else {
             was_connected = false;
@@ -606,9 +606,21 @@ bool RebootMenu::process_key_press(int key, int key_count, int& return_code,
     }
 }
 
-bool RebootMenu::process_timeout(int& return_code)
+
+bool RebootMenu::controller_connected(int& return_code)
 {
-    if(timeout_>5)
+    return true;
+}
+
+bool RebootMenu::controller_disconnected(int& return_code)
+{
+    return_code = 0;
+    return false;
+}
+
+bool RebootMenu::process_timeout(bool controller_is_connected, int& return_code)
+{
+    if(not controller_is_connected or timeout_>5)
     {
         return_code = 0;
         return false;
