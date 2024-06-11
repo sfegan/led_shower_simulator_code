@@ -11,9 +11,6 @@
 #include "event_generators.hpp"
 #include "event_dispatcher.hpp"
 
-// \ /
-//  V
-
 enum Pins { VDAC_BASE_PIN       = 0,
             ROW_A_BASE_PIN      = 8, 
             COL_A_BASE_PIN      = 12,
