@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include <cstring>
 #include <cstdio>
@@ -76,6 +77,22 @@ int Menu::puts_formatted(const std::string& s, const std::string& format,
     }
     if(!format.empty()) {
         if (puts_raw_nonl("\0338") == EOF)return EOF;
+    }
+    return 0;
+}
+
+int Menu::puts_center_filled(const std::string& s, size_t maxchars, char fill_char)
+{
+    size_t schars = std::min(maxchars, s.size());
+    size_t fchars = (maxchars-schars)/2;
+    for (size_t i=0; i<fchars; ++i, --maxchars) {
+        if (putchar_raw(fill_char) == EOF) return EOF;
+    }
+    for (size_t i=0; i<schars; ++i, --maxchars) {
+        if (putchar_raw(s[i]) == EOF) return EOF;
+    }
+    while(maxchars--) {
+        if (putchar_raw(fill_char) == EOF) return EOF;
     }
     return 0;
 }
@@ -674,7 +691,6 @@ bool RebootMenu::controller_connected(int& return_code)
 
 bool RebootMenu::controller_disconnected(int& return_code)
 {
-    return_code = 0;
     return false;
 }
 
@@ -689,3 +705,93 @@ bool RebootMenu::process_timer(bool controller_is_connected, int& return_code)
     return true;
 }
 
+InputMenu::InputMenu(unsigned max_value_size, const std::string title, const std::string prompt, Menu* base_menu):
+    FramedMenu(title,7,std::max({40U,title.size()+4U,max_value_size+prompt.size()+5U})), 
+    base_menu_(base_menu), max_value_size_(max_value_size), prompt_(prompt)
+{
+    cls_on_redraw_ = false;
+    if(base_menu) { 
+        this->set_screen_size(base_menu->screen_height(), base_menu->screen_width());
+    }
+}
+
+InputMenu::~InputMenu()
+{
+
+}
+
+bool InputMenu::controller_connected(int& return_code)
+{
+    return true;
+}
+
+bool InputMenu::controller_disconnected(int& return_code)
+{
+    return_code = 0;
+    return false;
+}
+
+bool InputMenu::process_key_press(int key, int key_count, int& return_code,
+    const std::vector<std::string>& escape_sequence_parameters)
+{
+    switch(key) {
+    case KEY_DELETE:
+    case 8: // Ctrl-h or backsapce
+    case 127: // Backspace ?
+        if(value_.size()) {
+            value_.pop_back();
+            draw_value();
+        }
+        break;
+    case 21:
+        if(value_.size()) {
+            value_.clear();
+            draw_value();
+        }
+        break;
+    case 3: // Ctrl-c
+    case 4: // Ctrl-d
+    case 27: // Esc
+        curpos(frame_r_+5, frame_c_+3);
+        puts_center_filled("  CANCELLED  ", frame_w_-4,'X');
+        sleep_ms(500);
+        return_code = 0;
+        return false;
+    case '\n':
+    case '\r':
+        return_code = 1;
+        return false;
+    default:
+        if(value_.size() < max_value_size_ and std::isprint(key)) {
+            value_.push_back(key);
+            draw_value();
+        } else {
+            putchar_raw(7); // Ctrl-g or BELL
+        }
+        break;
+    }
+    return true;
+}
+
+bool InputMenu::process_timer(bool controller_is_connected, int& return_code)
+{
+    return controller_is_connected;
+}
+
+void InputMenu::redraw()
+{
+    if(base_menu_) { base_menu_->redraw(); }
+    FramedMenu::redraw();
+    curpos(frame_r_+5, frame_c_+4);
+    puts_raw_nonl(prompt_);
+    putchar_raw(' ');
+    for(unsigned i=0;i<value_.size();++i)putchar_raw(value_[i]);
+    for(unsigned i=value_.size();i<max_value_size_;++i)putchar_raw('_');
+}
+
+void InputMenu::draw_value()
+{
+    curpos(frame_r_+5, frame_c_+prompt_.size()+5);
+    for(unsigned i=0;i<value_.size();++i)putchar_raw(value_[i]);
+    for(unsigned i=value_.size();i<max_value_size_;++i)putchar_raw('_');
+}

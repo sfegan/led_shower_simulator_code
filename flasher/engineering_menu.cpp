@@ -117,7 +117,7 @@ std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items()
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
     menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
 
-    menu_items.at(MIP_VDAC)        = {"</>     : Increase/decrease DAC voltage", 3, "0"};
+    menu_items.at(MIP_VDAC)        = {"</S/>   : Decrease/Set/Increase DAC voltage", 3, "0"};
     menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC voltage", 0, ""};
     menu_items.at(MIP_DAC_EN)      = {"V       : Toggle DAC voltage distribution", 4, "off"};
     menu_items.at(MIP_DAC_SEL)     = {"C       : Cycle between DACs", 5, "MAIN"};
@@ -132,7 +132,7 @@ std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items()
     menu_items.at(MIP_SPI_ALL_EN)  = {"A       : Toggle SPI all enable", 4, "off"};
 
     menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
-    menu_items.at(MIP_EXIT)        = {"q       : Exit menu", 0, ""};
+    menu_items.at(MIP_EXIT)        = {"q/Q     : Exit menu", 0, ""};
     return menu_items;
 }
 
@@ -205,6 +205,20 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
+    case 'S':
+        {
+            InputMenu input(3, "Enter VDAC voltage", "Enter value between 0 and 255:");
+            if(input.event_loop() != 0) {
+                int val = std::stoi(input.get_value());
+                if(val>=0 and val<=255) {
+                    vdac_ = val;
+                    gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
+                    set_vdac_value(false);
+                }
+            }
+            this->redraw();
+        }
+        break;
     case 'Z':
         vdac_ = 0;
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
@@ -226,7 +240,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put(DAC_WR_PIN, 0);
         set_dac_wr_value();
         dac_sel_ = (dac_sel_+1) % 4;
-        if(key=='S' and dac_sel_== 2) {
+        if(key!=3 and dac_sel_== 2) {
             dac_sel_ = 3;
         }
         gpio_put_masked(0x000003 << DAC_SEL_BASE_PIN, dac_sel_ << DAC_SEL_BASE_PIN);

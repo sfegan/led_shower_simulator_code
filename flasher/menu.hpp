@@ -29,6 +29,8 @@ public:
     static int puts_formatted(const std::string& s, const std::string& format, 
         size_t maxchars, bool fill = false);
 
+    static int puts_center_filled(const std::string& s, size_t maxchars, char fill_char = ' ');
+
     static int default_screen_width() { return 80; }
     static int default_screen_height() { return 24; }
     static uint64_t default_timer_interval_us() { return 10000; } /* 100Hz */
@@ -162,4 +164,25 @@ private:
     Menu* base_menu_ = nullptr;
     int dots_ = 0;
     int timer_calls_ = 0;
+};
+
+class InputMenu: public FramedMenu {
+public:
+    InputMenu(unsigned max_value_size, const std::string title = "Enter value", 
+        const std::string prompt = "Enter value: ", Menu* base_menu = nullptr);
+    virtual ~InputMenu();
+    void redraw() override;
+    bool controller_connected(int& return_code) override;
+    bool controller_disconnected(int& return_code) override;
+    bool process_key_press(int key, int key_count, int& return_code,
+        const std::vector<std::string>& escape_sequence_parameters) override;
+    bool process_timer(bool controller_is_connected, int& return_code) override;
+    const std::string get_value() const { return value_; }
+private:
+    void draw_value();
+
+    Menu* base_menu_ = nullptr;
+    unsigned max_value_size_;
+    std::string value_;
+    std::string prompt_;
 };
