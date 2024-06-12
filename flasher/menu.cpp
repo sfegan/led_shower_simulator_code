@@ -679,6 +679,9 @@ bool RebootMenu::process_key_press(int key, int key_count, int& return_code,
         timer_calls_ = 0;
         return true;
     } else {
+        curpos(frame_r_+5, frame_c_+ 4);
+        puts_center_filled("  CANCELLED  ", frame_w_-6,'X');
+        sleep_ms(1000);
         return_code = 0;
         return false;
     }
@@ -696,8 +699,11 @@ bool RebootMenu::controller_disconnected(int& return_code)
 
 bool RebootMenu::process_timer(bool controller_is_connected, int& return_code)
 {
-    if(not controller_is_connected or timer_calls_>50)
+    if(not controller_is_connected or timer_calls_>100)
     {
+        curpos(frame_r_+5, frame_c_+ 4);
+        puts_center_filled("  CANCELLED  ", frame_w_-6,'X');
+        sleep_ms(1000);
         return_code = 0;
         return false;
     }
@@ -705,9 +711,10 @@ bool RebootMenu::process_timer(bool controller_is_connected, int& return_code)
     return true;
 }
 
-InputMenu::InputMenu(unsigned max_value_size, const std::string title, const std::string prompt, Menu* base_menu):
-    FramedMenu(title,7,std::max({40U,title.size()+4U,max_value_size+prompt.size()+5U})), 
-    base_menu_(base_menu), max_value_size_(max_value_size), prompt_(prompt)
+InputMenu::InputMenu(unsigned max_value_size, ValidInput valid_input,
+        const std::string title, const std::string prompt, Menu* base_menu):
+    FramedMenu(title,7,std::max({40U,title.size()+6U,max_value_size+prompt.size()+7U})), 
+    base_menu_(base_menu), max_value_size_(max_value_size), valid_input_(valid_input), prompt_(prompt)
 {
     cls_on_redraw_ = false;
     if(base_menu) { 
@@ -715,9 +722,16 @@ InputMenu::InputMenu(unsigned max_value_size, const std::string title, const std
     }
 }
 
+InputMenu::InputMenu(unsigned max_value_size, const std::string title,
+        const std::string prompt, ValidInput valid_input, Menu* base_menu):
+    InputMenu(max_value_size, valid_input, title, prompt, base_menu)
+{
+    // nothing to see here
+}
+
 InputMenu::~InputMenu()
 {
-
+    // nothing to see here
 }
 
 bool InputMenu::controller_connected(int& return_code)
@@ -736,8 +750,8 @@ bool InputMenu::process_key_press(int key, int key_count, int& return_code,
 {
     switch(key) {
     case KEY_DELETE:
-    case 8: // Ctrl-h or backsapce
-    case 127: // Backspace ?
+    case 8:   // Ctrl-h or backsapce
+    case 127: // Delete
         if(value_.size()) {
             value_.pop_back();
             draw_value();
@@ -752,9 +766,9 @@ bool InputMenu::process_key_press(int key, int key_count, int& return_code,
     case 3: // Ctrl-c
     case 4: // Ctrl-d
     case 27: // Esc
-        curpos(frame_r_+5, frame_c_+3);
-        puts_center_filled("  CANCELLED  ", frame_w_-4,'X');
-        sleep_ms(500);
+        curpos(frame_r_+5, frame_c_+ 4);
+        puts_center_filled("  CANCELLED  ", frame_w_-6,'X');
+        sleep_ms(750);
         return_code = 0;
         return false;
     case '\n':
@@ -762,7 +776,7 @@ bool InputMenu::process_key_press(int key, int key_count, int& return_code,
         return_code = 1;
         return false;
     default:
-        if(value_.size() < max_value_size_ and std::isprint(key)) {
+        if(value_.size() < max_value_size_ and is_valid(key)) {
             value_.push_back(key);
             draw_value();
         } else {
@@ -771,6 +785,67 @@ bool InputMenu::process_key_press(int key, int key_count, int& return_code,
         break;
     }
     return true;
+}
+
+
+bool InputMenu::is_valid(int key)
+{
+    if(key>127) {
+        return false;
+    }
+    switch(valid_input_) {
+    case STRING:
+        return isprint(key);
+    case FLOAT:        
+        if(value_.size()==0)return key=='-' or key=='.' or isdigit(key);
+        else if(value_.size()==1) {
+            if(value_[0] == '-')return key=='.' or isdigit(key);
+            else if(value_[0]=='0')return key=='.';
+            else if(value_[0]=='.')return isdigit(key);
+            else return isdigit(key) or key=='.';
+        } else if(value_.size()==2) {
+            if(value_[0] == '-') {
+                if(value_[1]=='0')return key=='.';
+                else if(value_[1]=='.')return isdigit(key);
+                else return isdigit(key) or key=='.';
+            } else {
+                if(key == '.') {
+                    return value_.find('.') == std::string::npos;
+                } else {
+                    return isdigit(key);
+                }
+            } 
+        } else {
+            if(key == '.') {
+                return value_.find('.') == std::string::npos;
+            } else {
+                return isdigit(key);
+            }
+        }
+        return false;
+    case POSITIVE_FLOAT:        
+        if(value_.size()==0)return key=='.' or isdigit(key);
+        else if(value_.size()==1) {
+            if(value_[0]=='0')return key=='.';
+            else if(value_[0]=='.')return isdigit(key);
+            else return isdigit(key) or key=='.';
+        } else {
+            if(key == '.') {
+                return value_.find('.') == std::string::npos;
+            } else {
+                return isdigit(key);
+            }
+        }
+        return false;
+    case INTEGER:
+        if(value_.size()==0)return key=='-' or isdigit(key);
+        else if(value_.size()==1)return isdigit(key) and (value_[0]!='0' and key!='0');
+        else return isdigit(key);
+    case NATURAL:
+        if(value_.size()==0)return isdigit(key);
+        else return isdigit(key) and value_[0]!='0';
+    }
+    return false;
 }
 
 bool InputMenu::process_timer(bool controller_is_connected, int& return_code)

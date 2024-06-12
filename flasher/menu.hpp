@@ -168,8 +168,11 @@ private:
 
 class InputMenu: public FramedMenu {
 public:
-    InputMenu(unsigned max_value_size, const std::string title = "Enter value", 
+    enum ValidInput { STRING, FLOAT, POSITIVE_FLOAT, INTEGER, NATURAL };
+    InputMenu(unsigned max_value_size, ValidInput valid_input=STRING, const std::string title = "Enter value", 
         const std::string prompt = "Enter value: ", Menu* base_menu = nullptr);
+    InputMenu(unsigned max_value_size, const std::string title,
+        const std::string prompt = "Enter value: ", ValidInput valid_input=STRING, Menu* base_menu = nullptr);
     virtual ~InputMenu();
     void redraw() override;
     bool controller_connected(int& return_code) override;
@@ -180,9 +183,11 @@ public:
     const std::string get_value() const { return value_; }
 private:
     void draw_value();
+    bool is_valid(int key);
 
     Menu* base_menu_ = nullptr;
     unsigned max_value_size_;
+    ValidInput valid_input_ = STRING;
     std::string value_;
     std::string prompt_;
 };

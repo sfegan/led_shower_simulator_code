@@ -12,3 +12,5 @@ enum Pins { VDAC_BASE_PIN       = 0,
             SPARE_PIN           = 22,
             DAC_WR_PIN          = 26,
             DAC_SEL_BASE_PIN    = 27 };
+
+#define MENU_NAME(x) "LLR 256-pixel flasher : " x

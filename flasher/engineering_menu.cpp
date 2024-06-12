@@ -3,7 +3,7 @@
 #include "engineering_menu.hpp"
 
 EngineeringMenu::EngineeringMenu() : 
-    SimpleItemValueMenu(make_menu_items(), "Engineering menu") 
+    SimpleItemValueMenu(make_menu_items(), MENU_NAME("Engineering menu")) 
 {
     sync_values();
 }
@@ -117,8 +117,8 @@ std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items()
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
     menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
 
-    menu_items.at(MIP_VDAC)        = {"</S/>   : Decrease/Set/Increase DAC voltage", 3, "0"};
-    menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC voltage", 0, ""};
+    menu_items.at(MIP_VDAC)        = {"</S/>   : Decrease/Set/Increase DAC setting", 3, "0"};
+    menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC setting", 0, ""};
     menu_items.at(MIP_DAC_EN)      = {"V       : Toggle DAC voltage distribution", 4, "off"};
     menu_items.at(MIP_DAC_SEL)     = {"C       : Cycle between DACs", 5, "MAIN"};
     menu_items.at(MIP_DAC_WR)      = {"W       : Toggle DAC write enable", 4, "off"};
@@ -131,7 +131,7 @@ std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items()
     menu_items.at(MIP_SPI_COL_EN)  = {"R       : Toggle SPI row/col enable", 4, "off"};
     menu_items.at(MIP_SPI_ALL_EN)  = {"A       : Toggle SPI all enable", 4, "off"};
 
-    menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
+    menu_items.at(MIP_LED)         = {"L       : Toggle Raspberry-Pi Pico on-board LED", 4, "off"};
     menu_items.at(MIP_EXIT)        = {"q/Q     : Exit menu", 0, ""};
     return menu_items;
 }
@@ -207,8 +207,8 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
     case 'S':
         {
-            InputMenu input(3, "Enter VDAC voltage", "Enter value between 0 and 255:");
-            if(input.event_loop() != 0) {
+            InputMenu input(3, InputMenu::NATURAL, "Enter VDAC voltage", "Enter value between 0 and 255:");
+            if(input.event_loop()==1 and input.get_value().size()!=0) {
                 int val = std::stoi(input.get_value());
                 if(val>=0 and val<=255) {
                     vdac_ = val;

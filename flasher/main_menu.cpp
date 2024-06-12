@@ -18,7 +18,7 @@ std::vector<SimpleItemValueMenu::MenuItem> MainMenu::make_menu_items() {
 }
 
 MainMenu::MainMenu():
-    SimpleItemValueMenu(make_menu_items(), "LLR 256-pixel flasher : Main menu") 
+    SimpleItemValueMenu(make_menu_items(), MENU_NAME("Main menu")) 
 {
     timer_interval_us_ = 1000000; // 1Hz
 }
