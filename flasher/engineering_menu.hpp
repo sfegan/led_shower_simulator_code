@@ -19,39 +19,43 @@ public:
 
 private:
     enum MenuItemPositions {
-        MIP_VDAC       = 0,
-        MIP_ZERO_VDAC,
         MIP_ROWCOL,
+        MIP_VDAC,
+        MIP_ZERO_VDAC,
         MIP_DAC_EN,
+        MIP_DAC_SEL,
+        MIP_DAC_WR,
         MIP_TOGGLE_TRIG,
         MIP_PULSE_TRIG,
-        MIP_LED,
-        MIP_KEYPRESS,
-        MIP_DAC_WR,
-        MIP_DAC_SEL,
         MIP_SPI_CLK,
         MIP_SPI_DOUT,
         MIP_SPI_COL_EN,
         MIP_SPI_ALL_EN,
+        MIP_LED,
+        MIP_EXIT,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
 
     static std::vector<MenuItem> make_menu_items() {
         std::vector<MenuItem> menu_items(MIP_NUM_ITEMS);
+        menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
+
         menu_items.at(MIP_VDAC)        = {"</>     : Increase/decrease DAC voltage", 3, "0"};
         menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC voltage", 0, ""};
-        menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
-        menu_items.at(MIP_DAC_EN)      = {"D       : Toggle DAC enabled", 4, "off"};
+        menu_items.at(MIP_DAC_EN)      = {"V       : Toggle DAC voltage distribution", 4, "off"};
+        menu_items.at(MIP_DAC_SEL)     = {"S       : Select DAC", 5, "MAIN"};
+        menu_items.at(MIP_DAC_WR)      = {"W       : Toggle DAC write enable", 4, "off"};
+
         menu_items.at(MIP_TOGGLE_TRIG) = {"T       : Toggle trigger", 4, "off"};
         menu_items.at(MIP_PULSE_TRIG)  = {"P       : Pulse trigger", 0, ""};
+
+        menu_items.at(MIP_SPI_CLK)     = {"C       : Toggle SPI clock", 4, "off"};
+        menu_items.at(MIP_SPI_DOUT)    = {"D       : Toggle SPI data out", 4, "off"};
+        menu_items.at(MIP_SPI_COL_EN)  = {"R       : Toggle SPI row/col enable", 4, "off"};
+        menu_items.at(MIP_SPI_ALL_EN)  = {"A       : Toggle SPI all enable", 4, "off"};
+
         menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
-        menu_items.at(MIP_KEYPRESS)    = {"k       : Display keypress", 0, ""};
-        menu_items.at(MIP_DAC_WR)      = {"W       : Toggle DAC_WR", 4, "off"};
-        menu_items.at(MIP_DAC_SEL)     = {"S/s     : Next DAC/Skip 1 DAC", 5, "MAIN"};
-        menu_items.at(MIP_SPI_CLK)     = {"R       : Toggle SPI_CLK", 4, "off"};
-        menu_items.at(MIP_SPI_DOUT)    = {"E       : Toggle SPI_DOUT", 4, "off"};
-        menu_items.at(MIP_SPI_COL_EN)  = {"Y       : Toggle SPI_COL_EN", 4, "off"};
-        menu_items.at(MIP_SPI_ALL_EN)  = {"F       : Toggle SPI_ALL_EN", 4, "off"};
+        menu_items.at(MIP_EXIT)        = {"q       : Exit menu", 0, ""};
         return menu_items;
     }
 

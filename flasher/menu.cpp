@@ -622,7 +622,7 @@ void RebootMenu::redraw()
     if(base_menu_) { base_menu_->redraw(); }
     FramedMenu::redraw();
     curpos(frame_r_+5, frame_c_+4);
-    puts_raw_nonl("Hold ctrl-B to reboot : ");
+    puts_raw_nonl("Hold ctrl-b to reboot : ");
     for(int i=0;i<dots_;++i)putchar_raw('X');
     for(int i=dots_;i<10;++i)putchar_raw('_');
 }
