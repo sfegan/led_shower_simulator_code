@@ -3,7 +3,7 @@
 #include "engineering_menu.hpp"
 
 EngineeringMenu::EngineeringMenu() : 
-    SimpleItemValueMenu(make_menu_items(), MENU_NAME("Engineering menu")) 
+    SimpleItemValueMenu(make_menu_items(), "Engineering menu") 
 {
     sync_values();
 }

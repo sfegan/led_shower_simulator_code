@@ -1,8 +1,13 @@
 #include <cmath>
 #include <pico/double.h>
 
+#include "flasher.hpp"
 #include "event_generators.hpp"
 #include "event_dispatcher.hpp"
+
+namespace {
+    static BuildDate build_date(__DATE__,__TIME__);
+}
 
 template<typename T> void lock_and_set(T& variable, const T& value) {
     EventDispatcher::instance().lock();

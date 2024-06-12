@@ -10,7 +10,12 @@
 #include <pico/stdlib.h>
 #include <hardware/watchdog.h>
 
+#include "flasher.hpp"
 #include "menu.hpp"
+
+namespace {
+    static BuildDate build_date(__DATE__,__TIME__);
+}
 
 Menu::~Menu() 
 { 

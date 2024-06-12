@@ -1,7 +1,12 @@
+#include "flasher.hpp"
 #include "menu.hpp"
 #include "main_menu.hpp"
 #include "keypress_menu.hpp"
 #include "engineering_menu.hpp"
+
+namespace {
+    static BuildDate build_date(__DATE__,__TIME__);
+}
 
 #define WRITEVAL(x) \
     { \
@@ -18,7 +23,7 @@ std::vector<SimpleItemValueMenu::MenuItem> MainMenu::make_menu_items() {
 }
 
 MainMenu::MainMenu():
-    SimpleItemValueMenu(make_menu_items(), MENU_NAME("Main menu")) 
+    SimpleItemValueMenu(make_menu_items(), std::string("LLR flasher : Main menu (Build ")+BuildDate::latest_build_date+")") 
 {
     timer_interval_us_ = 1000000; // 1Hz
 }

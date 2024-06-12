@@ -1,6 +1,11 @@
 #include <cstdio>
 
+#include "flasher.hpp"
 #include "keypress_menu.hpp"
+
+namespace {
+    static BuildDate build_date(__DATE__,__TIME__);
+}
 
 void KeypressMenu::redraw()
 {
@@ -14,6 +19,7 @@ bool KeypressMenu::controller_connected(int& return_code)
     return_code = 0;
     return true;
 }
+
 
 bool KeypressMenu::controller_disconnected(int& return_code)
 {

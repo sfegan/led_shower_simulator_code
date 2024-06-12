@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 enum Pins { VDAC_BASE_PIN       = 0,
             ROW_A_BASE_PIN      = 8, 
             COL_A_BASE_PIN      = 12,
@@ -13,4 +15,8 @@ enum Pins { VDAC_BASE_PIN       = 0,
             DAC_WR_PIN          = 26,
             DAC_SEL_BASE_PIN    = 27 };
 
-#define MENU_NAME(x) "LLR 256-pixel flasher : " x
+struct BuildDate {
+    BuildDate(const char* date, const char* time);
+    std::string build_date;
+    static std::string latest_build_date;
+};  

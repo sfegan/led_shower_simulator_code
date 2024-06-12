@@ -3,8 +3,13 @@
 #include <pico/stdlib.h>
 #include <pico/multicore.h>
 
+#include "flasher.hpp"
 #include "event_dispatcher.hpp"
 #include "set_charges.pio.h"
+
+namespace {
+    static BuildDate build_date(__DATE__,__TIME__);
+}
 
 EventDispatcher::EventDispatcher()
 {
