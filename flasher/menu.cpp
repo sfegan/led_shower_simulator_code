@@ -155,6 +155,15 @@ bool Menu::draw_title(const std::string& title, int fh, int fw, int fr, int fc,
     return tw == int(title.size());
 }
 
+bool Menu::draw_heart(bool on, int fh, int fw, int fr, int fc)
+{
+    if(fh<2 || fw<6)return false;
+    curpos(fr+fh+1, fc+fw+1-4);
+    if(on)puts_raw_nonl("<3");
+    else puts_raw_nonl("--");
+    return true;
+}
+
 int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
 {
     static const int64_t multi_keypress_timeout = 100000; /* 100ms */
@@ -505,6 +514,17 @@ void FramedMenu::redraw()
     if(cls_on_redraw_)cls();
     draw_box(frame_h_, frame_w_, frame_r_, frame_c_);
     if(!title_.empty())draw_title(title_, frame_h_, frame_w_, frame_r_, frame_c_, {});
+    if(heartbeat_) {
+        draw_heart(true, frame_h_, frame_w_, frame_r_, frame_c_);
+    }
+}
+
+void FramedMenu::set_heartbeat(bool on)
+{
+    if(heartbeat_ != on) {
+        heartbeat_ = on;
+        draw_heart(heartbeat_, frame_h_, frame_w_, frame_r_, frame_c_);
+    }
 }
 
 void FramedMenu::setup_frame()

@@ -20,7 +20,7 @@ std::vector<SimpleItemValueMenu::MenuItem> MainMenu::make_menu_items() {
 MainMenu::MainMenu():
     SimpleItemValueMenu(make_menu_items(), "LLR 256-pixel flasher : Main menu") 
 {
-    // nothing to see here
+    timer_interval_us_ = 1000000; // 1Hz
 }
     
 MainMenu::~MainMenu()
@@ -85,5 +85,8 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
 
 bool MainMenu::process_timer(bool controller_is_connected, int& return_code)
 {
+    if(controller_is_connected) {
+        set_heartbeat(!heartbeat_);
+    }
     return true;
 }

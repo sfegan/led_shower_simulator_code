@@ -36,6 +36,106 @@ void EngineeringMenu::sync_values()
     set_spi_all_en_value(false);
 }
 
+void EngineeringMenu::set_vdac_value(bool draw) 
+{ 
+    menu_items_[MIP_VDAC].value = std::to_string(vdac_); 
+    if(draw)draw_item_value(MIP_VDAC);
+}
+
+void EngineeringMenu::set_rc_value(bool draw) 
+{ 
+    menu_items_[MIP_ROWCOL].value = std::string(1, char('A' + ar_)) 
+        + std::to_string(ac_); 
+    if(draw)draw_item_value(MIP_ROWCOL);
+}
+
+void EngineeringMenu::set_dac_e_value(bool draw) 
+{ 
+    menu_items_[MIP_DAC_EN].value = dac_e_ ? ">ON<" : "off";
+    menu_items_[MIP_DAC_EN].value_style = dac_e_ ? ANSI_INVERT : ""; 
+    if(draw)draw_item_value(MIP_DAC_EN);
+}
+
+void EngineeringMenu::set_trig_value(bool draw) 
+{ 
+    menu_items_[MIP_TOGGLE_TRIG].value = trig_ ? ">ON<" : "off"; 
+    menu_items_[MIP_TOGGLE_TRIG].value_style = trig_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_TOGGLE_TRIG); 
+}
+
+void EngineeringMenu::set_led_value(bool draw) 
+{ 
+    menu_items_[MIP_LED].value = led_int_ ? ">ON<" : "off"; 
+    menu_items_[MIP_LED].value_style = gpio_get(PICO_DEFAULT_LED_PIN) ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_LED); 
+}
+
+void EngineeringMenu::set_dac_wr_value(bool draw) 
+{ 
+    menu_items_[MIP_DAC_WR].value = dac_wr_ ? ">ON<" : "off"; 
+    menu_items_[MIP_DAC_WR].value_style = dac_wr_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_DAC_WR); 
+}
+
+void EngineeringMenu::set_dac_sel_value(bool draw) 
+{ 
+    static const char* name[]= {"MAIN", "SCALE", "SPARE", "TRIM"};
+    menu_items_[MIP_DAC_SEL].value = name[dac_sel_]; 
+    if(draw)draw_item_value(MIP_DAC_SEL);
+}
+
+void EngineeringMenu::set_spi_clk_value(bool draw) 
+{ 
+    menu_items_[MIP_SPI_CLK].value = spi_clk_ ? ">ON<" : "off"; 
+    menu_items_[MIP_SPI_CLK].value_style = spi_clk_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_SPI_CLK); 
+}
+
+void EngineeringMenu::set_spi_dout_value(bool draw) 
+{ 
+    menu_items_[MIP_SPI_DOUT].value = spi_dout_ ? ">ON<" : "off"; 
+    menu_items_[MIP_SPI_DOUT].value_style = spi_dout_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_SPI_DOUT); 
+}
+
+void EngineeringMenu::set_spi_col_en_value(bool draw) 
+{ 
+    menu_items_[MIP_SPI_COL_EN].value = spi_col_en_ ? ">ON<" : "off"; 
+    menu_items_[MIP_SPI_COL_EN].value_style = spi_col_en_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_SPI_COL_EN); 
+}
+
+void EngineeringMenu::set_spi_all_en_value(bool draw) 
+{ 
+    menu_items_[MIP_SPI_ALL_EN].value = spi_all_en_ ? ">ON<" : "off"; 
+    menu_items_[MIP_SPI_ALL_EN].value_style = spi_all_en_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_SPI_ALL_EN); 
+}
+
+std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items() 
+{
+    std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
+    menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
+
+    menu_items.at(MIP_VDAC)        = {"</>     : Increase/decrease DAC voltage", 3, "0"};
+    menu_items.at(MIP_ZERO_VDAC)   = {"Z       : Zero DAC voltage", 0, ""};
+    menu_items.at(MIP_DAC_EN)      = {"V       : Toggle DAC voltage distribution", 4, "off"};
+    menu_items.at(MIP_DAC_SEL)     = {"C       : Cycle between DACs", 5, "MAIN"};
+    menu_items.at(MIP_DAC_WR)      = {"W       : Toggle DAC write enable", 4, "off"};
+
+    menu_items.at(MIP_TOGGLE_TRIG) = {"T       : Toggle trigger", 4, "off"};
+    menu_items.at(MIP_PULSE_TRIG)  = {"P       : Pulse trigger", 0, ""};
+
+    menu_items.at(MIP_SPI_CLK)     = {"K       : Toggle SPI clock", 4, "off"};
+    menu_items.at(MIP_SPI_DOUT)    = {"D       : Toggle SPI data out", 4, "off"};
+    menu_items.at(MIP_SPI_COL_EN)  = {"R       : Toggle SPI row/col enable", 4, "off"};
+    menu_items.at(MIP_SPI_ALL_EN)  = {"A       : Toggle SPI all enable", 4, "off"};
+
+    menu_items.at(MIP_LED)         = {"L       : Toggle on-board LED", 4, "off"};
+    menu_items.at(MIP_EXIT)        = {"q       : Exit menu", 0, ""};
+    return menu_items;
+}
+
 bool EngineeringMenu::controller_connected(int& return_code)
 {
     return_code = 0;
@@ -120,8 +220,8 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put(DAC_WR_PIN, dac_wr_ ? 1 : 0);
         set_dac_wr_value();
         break;
-    case 'S':
-    case 19: // ctrl-s
+    case 'C':
+    case 3: // ctrl-c
         dac_wr_ = false; // make sure DAC_WR is OFF when user changes selected DAC
         gpio_put(DAC_WR_PIN, 0);
         set_dac_wr_value();
@@ -148,7 +248,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         set_trig_value();
         break;
 
-    case 'C':
+    case 'K':
         spi_clk_ = !spi_clk_;
         gpio_put(SPI_CLK_PIN, spi_clk_ ? 1 : 0);
         set_spi_clk_value();
@@ -172,7 +272,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     case 'L':
         led_int_ = !led_int_;
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
-        timer_count_ = 0;
+        led_timer_count_ = 0;
         set_led_value();
         break;
 
@@ -187,14 +287,21 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
 
 bool EngineeringMenu::process_timer(bool controller_is_connected, int& return_code)
 {
-    timer_count_ += 1;
-    if(timer_count_ == 100) {
+    heartbeat_timer_count_ += 1;
+    if(heartbeat_timer_count_ == 100) {
+        if(controller_is_connected) {
+            set_heartbeat(!heartbeat_);
+        }
+        heartbeat_timer_count_ = 0;
+    }
+
+    led_timer_count_ += 1;
+    if(led_timer_count_ == 100) {
         if(led_int_) {
             gpio_put(PICO_DEFAULT_LED_PIN, !gpio_get(PICO_DEFAULT_LED_PIN));
             set_led_value(true);
         }
-        timer_count_ = 0;
+        led_timer_count_ = 0;
     }
-    return_code = 0;
     return true;
 }

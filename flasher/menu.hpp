@@ -45,6 +45,7 @@ public:
     static void draw_box(int fh, int fw, int fr, int fc);
     static bool draw_title(const std::string& title,
             int fh, int fw, int fr, int fc, const std::string& title_style = {});
+    static bool draw_heart(bool on, int fh, int fw, int fr, int fc);
 
     static const int FAILED_ESCAPE_SEQUENCE      = 997;
     static const int INCOMPLETE_ESCAPE_SEQUENCE  = 998;
@@ -92,6 +93,8 @@ public:
 
     void redraw() override;
 
+    void set_heartbeat(bool on);
+
 protected:
     void setup_frame();
 
@@ -107,6 +110,7 @@ protected:
     int frame_c_ = 0;
 
     bool cls_on_redraw_ = false;
+    bool heartbeat_ = false;
 };
 
 class SimpleItemValueMenu: public FramedMenu {
