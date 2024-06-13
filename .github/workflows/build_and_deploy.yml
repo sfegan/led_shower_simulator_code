@@ -35,3 +35,9 @@ jobs:
       run: |
         cd build
         make -j3
+
+    - name: Archive flasher.uf2
+      uses: actions/upload-artifact@v4
+      with:
+        name: flasher-uf2
+        path: build/flasher/flasher.uf2
