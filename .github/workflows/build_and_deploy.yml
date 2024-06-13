@@ -17,8 +17,6 @@ jobs:
       run: |
         sudo apt-get update -y
         sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
-        mkdir SDK
-        cd SDK
         git clone https://github.com/raspberrypi/pico-sdk.git
 
     - name: Configure
@@ -26,8 +24,8 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DPICO_SDK_PATH=../SDK                                      \
-              -DCMAKE_BUILD_TYPE=Release                                  \
+        cmake -DPICO_SDK_PATH=../pico-sdk    \
+              -DCMAKE_BUILD_TYPE=Release     \
               ..
 
     - name: Build
