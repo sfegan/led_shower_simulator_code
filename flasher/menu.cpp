@@ -137,6 +137,12 @@ void Menu::restore_cursor()
     puts_raw_nonl("\0338");
 }
 
+void Menu::highlight()
+{
+    puts_raw_nonl(ANSI_INVERT);
+}
+
+
 void Menu::reset_colors()
 {
     puts_raw_nonl("\033[m");

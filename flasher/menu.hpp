@@ -41,6 +41,7 @@ public:
     static void curpos(int r, int c);
     static void save_cursor();
     static void restore_cursor();
+    static void highlight();
     static void reset_colors();
     static void send_request_screen_size();
 
@@ -78,7 +79,7 @@ public:
     static const int CURSOR_POSITION_REPORT      = 1100;
 
 protected:
-    uint64_t timer_interval_us_ = default_timer_interval_us();
+    uint64_t timer_interval_us_   = default_timer_interval_us();
     int screen_w_                 = default_screen_width();
     int screen_h_                 = default_screen_height();
 

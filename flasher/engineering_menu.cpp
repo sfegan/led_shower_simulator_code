@@ -212,16 +212,20 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
     case 'S':
         {
-            InputMenu input(3, InputMenu::NATURAL, "Enter VDAC voltage", "Enter value between 0 and 255:");
+            //InputMenu input(3, InputMenu::NATURAL, "Enter VDAC voltage", "Enter value between 0 and 255:");
+            InplaceInputMenu input(item_r_+MIP_VDAC*item_dr_, val_c_, 3, InplaceInputMenu::NATURAL);
             if(input.event_loop()==1 and input.get_value().size()!=0) {
                 int val = std::stoi(input.get_value());
                 if(val>=0 and val<=255) {
                     vdac_ = val;
                     gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
-                    set_vdac_value(false);
+                } else {
+                    input.cancelled();
                 }
+            } else {
+                input.cancelled();
             }
-            this->redraw();
+            set_vdac_value(true);
         }
         break;
     case 'Z':
