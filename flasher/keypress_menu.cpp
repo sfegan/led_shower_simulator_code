@@ -11,7 +11,7 @@ void KeypressMenu::redraw()
 {
     cls();
     curpos(1,1);
-    puts("Type some keys (terminate with Ctrl-D)");
+    puts("Type some keys (terminate with Ctrl-d)");
 }
 
 bool KeypressMenu::controller_connected(int& return_code)

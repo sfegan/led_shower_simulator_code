@@ -190,4 +190,5 @@ private:
     ValidInput valid_input_ = STRING;
     std::string value_;
     std::string prompt_;
+    bool blink_on_ = false;
 };

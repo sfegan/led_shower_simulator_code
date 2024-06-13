@@ -725,6 +725,7 @@ InputMenu::InputMenu(unsigned max_value_size, ValidInput valid_input,
     if(base_menu) { 
         this->set_screen_size(base_menu->screen_height(), base_menu->screen_width());
     }
+    timer_interval_us_ = 1000000; // 1Hz
 }
 
 InputMenu::InputMenu(unsigned max_value_size, const std::string title,
@@ -855,6 +856,13 @@ bool InputMenu::is_valid(int key)
 
 bool InputMenu::process_timer(bool controller_is_connected, int& return_code)
 {
+    if(controller_is_connected) {
+        blink_on_ = !blink_on_;
+        if(value_.size() < max_value_size_) {
+            curpos(frame_r_+5, frame_c_+prompt_.size()+5+value_.size());
+            putchar_raw(blink_on_ ? ' ' : '_');
+        }
+    }
     return controller_is_connected;
 }
 
@@ -866,12 +874,18 @@ void InputMenu::redraw()
     puts_raw_nonl(prompt_);
     putchar_raw(' ');
     for(unsigned i=0;i<value_.size();++i)putchar_raw(value_[i]);
-    for(unsigned i=value_.size();i<max_value_size_;++i)putchar_raw('_');
+    if(value_.size() < max_value_size_) {
+        putchar_raw(blink_on_ ? ' ' : '_');
+    }
+    for(unsigned i=value_.size()+1;i<max_value_size_;++i)putchar_raw('_');
 }
 
 void InputMenu::draw_value()
 {
     curpos(frame_r_+5, frame_c_+prompt_.size()+5);
     for(unsigned i=0;i<value_.size();++i)putchar_raw(value_[i]);
-    for(unsigned i=value_.size();i<max_value_size_;++i)putchar_raw('_');
+    if(value_.size() < max_value_size_) {
+        putchar_raw(blink_on_ ? ' ' : '_');
+    }
+    for(unsigned i=value_.size()+1;i<max_value_size_;++i)putchar_raw('_');
 }
