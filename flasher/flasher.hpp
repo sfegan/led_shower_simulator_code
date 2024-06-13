@@ -17,6 +17,5 @@ enum Pins { VDAC_BASE_PIN       = 0,
 
 struct BuildDate {
     BuildDate(const char* date, const char* time);
-    std::string build_date;
     static std::string latest_build_date;
 };  

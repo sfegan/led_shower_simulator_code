@@ -57,7 +57,7 @@ bool InputMenu::process_key_press(int key, int key_count, int& return_code,
 {
     switch(key) {
     case KEY_DELETE:
-    case 8:   // Ctrl-h or backsapce
+    case 8:   // Ctrl-h or backspace
     case 127: // Delete
         if(value_.size()) {
             value_.pop_back();
