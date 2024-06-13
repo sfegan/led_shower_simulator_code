@@ -3,6 +3,10 @@
 #include "input_menu.hpp"
 #include "engineering_menu.hpp"
 
+namespace {
+    static BuildDate build_date(__DATE__,__TIME__);
+}
+
 EngineeringMenu::EngineeringMenu() : 
     SimpleItemValueMenu(make_menu_items(), "Engineering menu") 
 {
