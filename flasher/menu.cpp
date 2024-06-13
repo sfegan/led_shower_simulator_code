@@ -8,7 +8,7 @@
 
 #include <pico/time.h>
 #include <pico/stdlib.h>
-#include <pico/stdio_usb.h>
+#include <pico/stdio.h>
 #include <hardware/watchdog.h>
 
 #include "flasher.hpp"
