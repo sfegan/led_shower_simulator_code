@@ -17,6 +17,9 @@ std::string BuildDate::latest_build_date = "0000-00-00 00:00:00";
 
 BuildDate::BuildDate(const char* date, const char* time)
 {
+    // Input date format : "Mmm DD YYYY"
+    // Input time format : "HH:MM:SS"
+    
     std::string build_date = "0000-00-00 00:00:00";
     build_date[0] = date[7];
     build_date[1] = date[8];
@@ -24,34 +27,34 @@ BuildDate::BuildDate(const char* date, const char* time)
     build_date[3] = date[10];
     switch(date[0]) {
     case 'J':
-        if(date[1] == 'a')build_date[6] = '1';         // Jan
-        else if(date[2] == 'n')build_date[6] = '6';    // Jun
-        else build_date[6] = '7';                      // Jul
+        if(date[1] == 'a')build_date[6] = '1';       // Jan
+        else if(date[2] == 'n')build_date[6] = '6';  // Jun
+        else build_date[6] = '7';                    // Jul
         break;
     case 'F':
-        build_date[6] = '2';                           // Feb
+        build_date[6] = '2';                         // Feb
         break;
     case 'M':
-        if(date[2] == 'r')build_date[6] = '3';         // Mar
-        else build_date[6] = '5';                      // May
+        if(date[2] == 'r')build_date[6] = '3';       // Mar
+        else build_date[6] = '5';                    // May
         break;
     case 'A':
-        if(date[1] == 'p')build_date[6] = '4';         // Apr
-        else build_date[6] = '8';                      // Aug
+        if(date[1] == 'p')build_date[6] = '4';       // Apr
+        else build_date[6] = '8';                    // Aug
         break;
     case 'S':
-        build_date[6] = '9';                           // Sep
+        build_date[6] = '9';                         // Sep
         break;
     case 'O':
-        build_date[6] = '0';                           // Oct
+        build_date[6] = '0';                         // Oct
         build_date[5] = '1';
         break;
     case 'N':
-        build_date[6] = '1';                           // Nov
+        build_date[6] = '1';                         // Nov
         build_date[5] = '1';
         break;
     case 'D':
-        build_date[6] = '2';                           // Dec
+        build_date[6] = '2';                         // Dec
         build_date[5] = '1';
         break;
 
