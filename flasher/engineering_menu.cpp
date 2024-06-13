@@ -1,5 +1,6 @@
 #include "flasher.hpp"
 #include "menu.hpp"
+#include "input_menu.hpp"
 #include "engineering_menu.hpp"
 
 EngineeringMenu::EngineeringMenu() : 
