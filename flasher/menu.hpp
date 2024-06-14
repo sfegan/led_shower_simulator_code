@@ -17,6 +17,7 @@ public:
 
     int event_loop(bool enable_escape_sequences = true, bool enable_reboot = true);
 
+    uint64_t timer_interval_us() const { return timer_interval_us_; }
     int screen_width() const { return screen_w_; }
     int screen_height() const { return screen_h_; }
     void set_screen_size(int h, int w) { screen_h_ = h; screen_w_ = w; }

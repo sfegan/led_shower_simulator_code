@@ -142,7 +142,6 @@ void Menu::highlight()
     puts_raw_nonl(ANSI_INVERT);
 }
 
-
 void Menu::reset_colors()
 {
     puts_raw_nonl("\033[m");
@@ -657,4 +656,3 @@ void SimpleItemValueMenu::draw_item_value(unsigned iitem)
         }
     }
 }
-
