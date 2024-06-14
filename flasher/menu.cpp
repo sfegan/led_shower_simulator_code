@@ -19,6 +19,14 @@ namespace {
     static BuildDate build_date(__DATE__,__TIME__);
 }
 
+int Menu::screen_w_ = Menu::default_screen_width();
+int Menu::screen_h_ = Menu::default_screen_height();
+
+RowAndColumnGetter::~RowAndColumnGetter()
+{
+    // nothing to see here
+}
+
 Menu::~Menu() 
 { 
     // nothing to see here
@@ -619,6 +627,11 @@ void SimpleItemValueMenu::setup_menu()
     val_c_ = frame_c_ + frame_w_ - val_w_ - (item_c_ - frame_c_);
 }
 
+void SimpleItemValueMenu::get_item_value_row_and_column(int iitem, int& r, int& c)
+{
+    r = item_r_+iitem*item_dr_;
+    c = val_c_;
+}
 
 void SimpleItemValueMenu::redraw()
 {
@@ -655,4 +668,14 @@ void SimpleItemValueMenu::draw_item_value(unsigned iitem)
             puts_raw_nonl(menu_items_[iitem].value, menu_items_[iitem].max_value_size, true);
         }
     }
+}
+
+SimpleItemValueRowAndColumnGetter::~SimpleItemValueRowAndColumnGetter()
+{
+    // nothing to see here
+}
+
+void SimpleItemValueRowAndColumnGetter::get_row_and_column(int& r, int& c)
+{
+    return menu_->get_item_value_row_and_column(iitem_, r, c);
 }

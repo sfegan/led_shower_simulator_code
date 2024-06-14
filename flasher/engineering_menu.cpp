@@ -212,8 +212,10 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
     case 'S':
         {
-            //InputMenu input(3, InputMenu::NATURAL, "Enter VDAC voltage", "Enter value between 0 and 255:");
-            InplaceInputMenu input(item_r_+MIP_VDAC*item_dr_, val_c_, 3, VI_NATURAL);
+            //InputMenu input(3, InputMenu::NATURAL, "Enter VDAC voltage", "Enter value between 0 and 255:", this);
+            SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_VDAC);
+            InplaceInputMenu input(item_r_+MIP_VDAC*item_dr_, val_c_, 3, VI_NATURAL, 
+                true, this, &rc_getter);
             if(input.event_loop()==1 and input.get_value().size()!=0) {
                 int val = std::stoi(input.get_value());
                 if(val>=0 and val<=255) {

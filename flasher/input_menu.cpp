@@ -18,8 +18,9 @@ namespace {
 }
 
 InplaceInputMenu::InplaceInputMenu(int r, int c, unsigned max_value_size, ValidInput valid_input, 
-        bool do_highlight, Menu* base_menu):
-    Menu(), base_menu_(base_menu), r_(r), c_(c), max_value_size_(max_value_size), valid_input_(valid_input),
+        bool do_highlight, Menu* base_menu, RowAndColumnGetter* row_col_getter):
+    Menu(), base_menu_(base_menu), row_col_getter_(row_col_getter),
+    r_(r), c_(c), max_value_size_(max_value_size), valid_input_(valid_input),
     do_highlight_(do_highlight)
 {
     if(base_menu) { 
@@ -165,6 +166,7 @@ bool InplaceInputMenu::process_timer(bool controller_is_connected, int& return_c
 void InplaceInputMenu::redraw()
 {
     if(base_menu_) { base_menu_->redraw(); }
+    if(row_col_getter_) { row_col_getter_->get_row_and_column(r_,c_); }
     draw_value();
 }
 

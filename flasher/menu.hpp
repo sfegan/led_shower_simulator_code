@@ -5,6 +5,12 @@
 
 #define ANSI_INVERT "\033[7m"
 
+class RowAndColumnGetter {
+public:
+    virtual ~RowAndColumnGetter();
+    virtual void get_row_and_column(int& r, int& c) = 0;
+};
+
 class Menu {
 public:
     virtual ~Menu();
@@ -20,7 +26,7 @@ public:
     uint64_t timer_interval_us() const { return timer_interval_us_; }
     int screen_width() const { return screen_w_; }
     int screen_height() const { return screen_h_; }
-    void set_screen_size(int h, int w) { screen_h_ = h; screen_w_ = w; }
+    static void set_screen_size(int h, int w) { screen_h_ = h; screen_w_ = w; }
 
     static int puts_raw_nonl(const char* s);
     static int puts_raw_nonl(const char* s, size_t maxchars, bool fill = false);
@@ -81,8 +87,8 @@ public:
 
 protected:
     uint64_t timer_interval_us_   = default_timer_interval_us();
-    int screen_w_                 = default_screen_width();
-    int screen_h_                 = default_screen_height();
+    static int screen_w_;
+    static int screen_h_;
 
 private:
     static int decode_partial_escape_sequence(int key, std::string& escape_sequence, 
@@ -132,6 +138,7 @@ public:
         const std::string& title={}, int frame_h=0, int frame_w=0, int frame_pos=0);
     virtual ~SimpleItemValueMenu();
     
+    void get_item_value_row_and_column(int iitem, int& r, int& c);
     void redraw() override;
     
 protected:
@@ -150,4 +157,15 @@ protected:
     int item_c_ = 0;
     int val_c_ = 0;
     int item_dr_ = 1;
+};
+
+class SimpleItemValueRowAndColumnGetter: public RowAndColumnGetter {
+public:
+    SimpleItemValueRowAndColumnGetter(SimpleItemValueMenu* menu, int iitem):
+        RowAndColumnGetter(), menu_(menu), iitem_(iitem) { }
+    virtual ~SimpleItemValueRowAndColumnGetter();
+    void get_row_and_column(int& r, int& c) override;
+public:
+    SimpleItemValueMenu* menu_ = nullptr;
+    int iitem_ = 0;
 };
