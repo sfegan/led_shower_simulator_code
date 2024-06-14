@@ -23,9 +23,6 @@ RebootMenu::RebootMenu(Menu* base_menu):
     FramedMenu("Reboot",7,40,0), base_menu_(base_menu)
 { 
     cls_on_redraw_ = false;
-    if(base_menu) { 
-        this->set_screen_size(base_menu->screen_height(), base_menu->screen_width());
-    }
 }
 
 void RebootMenu::redraw()

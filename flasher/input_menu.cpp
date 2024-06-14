@@ -23,9 +23,6 @@ InplaceInputMenu::InplaceInputMenu(int r, int c, unsigned max_value_size, ValidI
     r_(r), c_(c), max_value_size_(max_value_size), valid_input_(valid_input),
     do_highlight_(do_highlight)
 {
-    if(base_menu) { 
-        this->set_screen_size(base_menu->screen_height(), base_menu->screen_width());
-    }
     timer_interval_us_ = 1000000; // 1Hz
 }
 
@@ -208,9 +205,6 @@ InputMenu::InputMenu(unsigned max_value_size, ValidInput valid_input,
     base_menu_(base_menu), prompt_(prompt)
 {
     cls_on_redraw_ = false;
-    if(base_menu) { 
-        this->set_screen_size(base_menu->screen_height(), base_menu->screen_width());
-    }
     timer_interval_us_ = iim_.timer_interval_us();
 }
 
