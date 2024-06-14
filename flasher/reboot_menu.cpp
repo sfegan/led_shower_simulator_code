@@ -27,7 +27,8 @@ RebootMenu::RebootMenu(Menu* base_menu):
 
 void RebootMenu::redraw()
 {
-    if(base_menu_) { base_menu_->redraw(); }
+    if(base_menu_ and not first_redraw_) { base_menu_->redraw(); }
+    first_redraw_ = false;
     FramedMenu::redraw();
     curpos(frame_r_+5, frame_c_+4);
     puts_raw_nonl("Hold ctrl-b to reboot : ");

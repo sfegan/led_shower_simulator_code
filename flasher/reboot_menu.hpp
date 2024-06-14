@@ -16,5 +16,6 @@ private:
     Menu* base_menu_ = nullptr;
     int dots_ = 0;
     int timer_calls_ = 0;
+    bool first_redraw_ = true;
 };
 

@@ -162,7 +162,8 @@ bool InplaceInputMenu::process_timer(bool controller_is_connected, int& return_c
 
 void InplaceInputMenu::redraw()
 {
-    if(base_menu_) { base_menu_->redraw(); }
+    if(base_menu_ and not first_redraw_) { base_menu_->redraw(); }
+    first_redraw_ = false;
     if(row_col_getter_) { row_col_getter_->get_row_and_column(r_,c_); }
     draw_value();
 }
@@ -243,7 +244,8 @@ bool InputMenu::process_timer(bool controller_is_connected, int& return_code)
 
 void InputMenu::redraw()
 {
-    if(base_menu_) { base_menu_->redraw(); }
+    if(base_menu_ and not first_redraw_) { base_menu_->redraw(); }
+    first_redraw_ = false;
     FramedMenu::redraw();
     curpos(frame_r_+5, frame_c_+4);
     puts_raw_nonl(prompt_);

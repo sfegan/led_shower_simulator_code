@@ -32,6 +32,7 @@ private:
     std::string value_;
     bool do_highlight_;
     bool blink_on_ = false;
+    bool first_redraw_ = true;
 };
 
 class InputMenu: public FramedMenu {
@@ -53,4 +54,5 @@ private:
     InplaceInputMenu iim_;
     Menu* base_menu_ = nullptr;
     std::string prompt_;
+    bool first_redraw_ = true;
 };
