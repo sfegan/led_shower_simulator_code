@@ -202,7 +202,7 @@ void InplaceInputMenu::cancelled()
 InputMenu::InputMenu(unsigned max_value_size, ValidInput valid_input,
         const std::string title, const std::string prompt, Menu* base_menu):
     FramedMenu(title,7,std::max({40U,title.size()+6U,max_value_size+prompt.size()+7U})), 
-    iim_(frame_r_+5, frame_c_+prompt_.size()+5, max_value_size, valid_input, false, nullptr),
+    iim_(frame_r_+4, frame_c_+prompt_.size()+4, max_value_size, valid_input, false, nullptr, this),
     base_menu_(base_menu), prompt_(prompt)
 {
     cls_on_redraw_ = false;
@@ -262,4 +262,10 @@ void InputMenu::cancelled()
     curpos(frame_r_+5, frame_c_+ 4);
     puts_center_filled("  CANCELLED  ", frame_w_-6,'X');
     sleep_ms(750);
+}
+
+void InputMenu::get_row_and_column(int& r, int& c)
+{
+    r = frame_r_+4;
+    c = frame_c_+prompt_.size()+4;
 }

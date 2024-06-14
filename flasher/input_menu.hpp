@@ -35,7 +35,7 @@ private:
     bool first_redraw_ = true;
 };
 
-class InputMenu: public FramedMenu {
+class InputMenu: public FramedMenu, RowAndColumnGetter {
 public:
     InputMenu(unsigned max_value_size, ValidInput valid_input=VI_STRING, const std::string title = "Enter value", 
         const std::string prompt = "Enter value: ", Menu* base_menu = nullptr);
@@ -50,6 +50,7 @@ public:
     bool process_timer(bool controller_is_connected, int& return_code) override;
     const std::string get_value() const;
     void cancelled();
+    void get_row_and_column(int& r, int& c) override;
 private:
     InplaceInputMenu iim_;
     Menu* base_menu_ = nullptr;
