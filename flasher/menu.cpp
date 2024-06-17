@@ -627,10 +627,14 @@ void SimpleItemValueMenu::setup_menu()
     val_c_ = frame_c_ + frame_w_ - val_w_ - (item_c_ - frame_c_);
 }
 
-void SimpleItemValueMenu::get_item_value_row_and_column(int iitem, int& r, int& c)
+int SimpleItemValueMenu::get_item_value_row(int iitem)
 {
-    r = item_r_+iitem*item_dr_;
-    c = val_c_;
+    return item_r_+iitem*item_dr_;
+}
+
+int SimpleItemValueMenu::get_item_value_col(int iitem)
+{
+    return val_c_;
 }
 
 void SimpleItemValueMenu::redraw()
@@ -675,7 +679,12 @@ SimpleItemValueRowAndColumnGetter::~SimpleItemValueRowAndColumnGetter()
     // nothing to see here
 }
 
-void SimpleItemValueRowAndColumnGetter::get_row_and_column(int& r, int& c)
+int SimpleItemValueRowAndColumnGetter::row()
 {
-    return menu_->get_item_value_row_and_column(iitem_, r, c);
+    return menu_->get_item_value_row(iitem_);
+}
+
+int SimpleItemValueRowAndColumnGetter::col()
+{
+    return menu_->get_item_value_col(iitem_);
 }

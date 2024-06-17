@@ -52,7 +52,8 @@ public:
     bool process_timer(bool controller_is_connected, int& return_code) override;
     const std::string get_value() const;
     void cancelled();
-    void get_row_and_column(int& r, int& c) override;
+    int row() override;
+    int col() override;
 private:
     InplaceInputMenu iim_;
     Menu* base_menu_ = nullptr;

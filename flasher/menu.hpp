@@ -8,7 +8,8 @@
 class RowAndColumnGetter {
 public:
     virtual ~RowAndColumnGetter();
-    virtual void get_row_and_column(int& r, int& c) = 0;
+    virtual int row() = 0;
+    virtual int col() = 0;
 };
 
 class Menu {
@@ -138,7 +139,8 @@ public:
         const std::string& title={}, int frame_h=0, int frame_w=0, int frame_pos=0);
     virtual ~SimpleItemValueMenu();
     
-    void get_item_value_row_and_column(int iitem, int& r, int& c);
+    int get_item_value_row(int iitem);
+    int get_item_value_col(int iitem);
     void redraw() override;
     
 protected:
@@ -164,7 +166,8 @@ public:
     SimpleItemValueRowAndColumnGetter(SimpleItemValueMenu* menu, int iitem):
         RowAndColumnGetter(), menu_(menu), iitem_(iitem) { }
     virtual ~SimpleItemValueRowAndColumnGetter();
-    void get_row_and_column(int& r, int& c) override;
+    int row() override;
+    int col() override;
 public:
     SimpleItemValueMenu* menu_ = nullptr;
     int iitem_ = 0;
