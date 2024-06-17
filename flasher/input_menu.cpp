@@ -17,6 +17,13 @@ namespace {
     static BuildDate build_date(__DATE__,__TIME__);
 }
 
+InplaceInputMenu::InplaceInputMenu(RowAndColumnGetter& row_col_getter, unsigned max_value_size, 
+        ValidInput valid_input, bool do_highlight, Menu* base_menu):
+    InplaceInputMenu(0,0,max_value_size,valid_input,do_highlight,base_menu,&row_col_getter)
+{
+    row_col_getter_->get_row_and_column(r_,c_);
+}
+
 InplaceInputMenu::InplaceInputMenu(int r, int c, unsigned max_value_size, ValidInput valid_input, 
         bool do_highlight, Menu* base_menu, RowAndColumnGetter* row_col_getter):
     Menu(), base_menu_(base_menu), row_col_getter_(row_col_getter),

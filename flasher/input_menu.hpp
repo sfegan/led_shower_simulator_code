@@ -8,6 +8,8 @@ enum ValidInput { VI_STRING, VI_FLOAT, VI_POSITIVE_FLOAT, VI_INTEGER, VI_NATURAL
 
 class InplaceInputMenu: public Menu {
 public:
+    InplaceInputMenu(RowAndColumnGetter& row_col_getter, unsigned max_value_size, 
+        ValidInput valid_input=VI_STRING, bool do_highlight=true, Menu* base_menu = nullptr);
     InplaceInputMenu(int r, int c, unsigned max_value_size, ValidInput valid_input=VI_STRING, 
         bool do_highlight=true, Menu* base_menu = nullptr, RowAndColumnGetter* row_col_getter = nullptr);
     virtual ~InplaceInputMenu();
