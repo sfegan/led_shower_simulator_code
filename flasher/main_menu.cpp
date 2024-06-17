@@ -3,6 +3,7 @@
 #include "main_menu.hpp"
 #include "keypress_menu.hpp"
 #include "engineering_menu.hpp"
+#include "dc_ramp_menu.hpp"
 
 namespace {
     static BuildDate build_date(__DATE__,__TIME__);
@@ -19,6 +20,7 @@ std::vector<SimpleItemValueMenu::MenuItem> MainMenu::make_menu_items() {
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
     menu_items.at(MIP_ENGINEERING) = {"E/e     : Engineering menu", 0, ""};
     menu_items.at(MIP_REBOOT)      = {"Ctrl-b  : Reboot flasher (press and hold)", 0, ""};
+    menu_items.at(MIP_DC_RAMP)     = {"M/m     : Ramp menu", 0, ""};
     return menu_items;
 }
 
@@ -51,6 +53,14 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
     case 'e': 
         {
             EngineeringMenu menu;
+            menu.event_loop();
+            this->redraw();
+        }
+        break;
+    case 'M': 
+    case 'm': 
+        {
+            DCRampMenu menu;
             menu.event_loop();
             this->redraw();
         }
