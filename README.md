@@ -1,6 +1,6 @@
 # Build instructions
 
-You can build the UF2 package to install on the Rasperberry Pi Pico using the instructions below, having first installed the SDK. Alternaticely the package is built automatically by a Github Action and made available as an Artefact.
+You can build the UF2 package to install on the Rasperberry Pi Pico using the instructions below, having first installed the SDK. Alternatively the package is built automatically by a Github Action and made available as an Artefact.
 
 1. mkdir build
 2. cd build
