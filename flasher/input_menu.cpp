@@ -17,6 +17,14 @@ namespace {
     static BuildDate build_date(__DATE__,__TIME__);
 }
 
+InplaceInputMenu::InplaceInputMenu(RowAndColumnGetter& row_col_getter, unsigned max_value_size, 
+        ValidInput valid_input, bool do_highlight, Menu* base_menu):
+    InplaceInputMenu(row_col_getter.row(),row_col_getter.col(),
+        max_value_size,valid_input,do_highlight,base_menu,&row_col_getter)
+{
+    // nothing to see here
+}
+
 InplaceInputMenu::InplaceInputMenu(int r, int c, unsigned max_value_size, ValidInput valid_input, 
         bool do_highlight, Menu* base_menu, RowAndColumnGetter* row_col_getter):
     Menu(), base_menu_(base_menu), row_col_getter_(row_col_getter),
@@ -164,7 +172,10 @@ void InplaceInputMenu::redraw()
 {
     if(base_menu_ and not first_redraw_) { base_menu_->redraw(); }
     first_redraw_ = false;
-    if(row_col_getter_) { row_col_getter_->get_row_and_column(r_,c_); }
+    if(row_col_getter_) { 
+        r_ = row_col_getter_->row();
+        c_ = row_col_getter_->col(); 
+    }
     draw_value();
 }
 
@@ -264,8 +275,12 @@ void InputMenu::cancelled()
     sleep_ms(750);
 }
 
-void InputMenu::get_row_and_column(int& r, int& c)
+int InputMenu::row()
 {
-    r = frame_r_+4;
-    c = frame_c_+prompt_.size()+4;
+    return frame_r_+4;
+}
+
+int InputMenu::col()
+{
+    return frame_c_+prompt_.size()+4;
 }
