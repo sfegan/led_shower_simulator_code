@@ -213,7 +213,7 @@ void InplaceInputMenu::cancelled()
 InputMenu::InputMenu(unsigned max_value_size, ValidInput valid_input,
         const std::string title, const std::string prompt, Menu* base_menu):
     FramedMenu(title,7,std::max({40U,title.size()+6U,max_value_size+prompt.size()+7U})), 
-    iim_(frame_r_+4, frame_c_+prompt_.size()+4, max_value_size, valid_input, false, nullptr, this),
+    iim_(*this, max_value_size, valid_input, false, nullptr),
     base_menu_(base_menu), prompt_(prompt)
 {
     cls_on_redraw_ = false;
