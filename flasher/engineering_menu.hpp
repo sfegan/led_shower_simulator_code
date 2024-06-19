@@ -32,6 +32,7 @@ private:
         MIP_SPI_COL_EN,
         MIP_SPI_ALL_EN,
         MIP_LED,
+        MIP_TIMER_LED,
         MIP_EXIT,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
@@ -44,6 +45,7 @@ private:
     void set_dac_e_value(bool draw = true);
     void set_trig_value(bool draw = true);
     void set_led_value(bool draw = true);
+    void set_led_timer_count_value(bool draw = true); 
     void set_dac_wr_value(bool draw = true);
     void set_dac_sel_value(bool draw = true);
     void set_spi_clk_value(bool draw = true);
