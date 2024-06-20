@@ -295,7 +295,6 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     case 'L':
         led_int_ = !led_int_;
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
-        led_timer_count_ = 0;
         set_led_value();
         break;
 
@@ -318,13 +317,5 @@ bool EngineeringMenu::process_timer(bool controller_is_connected, int& return_co
         heartbeat_timer_count_ = 0;
     }
 
-    led_timer_count_ += 1;
-    if(led_timer_count_ == 100) {
-        if(led_int_) {
-            gpio_put(PICO_DEFAULT_LED_PIN, !gpio_get(PICO_DEFAULT_LED_PIN));
-            set_led_value(true);
-        }
-        led_timer_count_ = 0;
-    }
     return true;
 }
