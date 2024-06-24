@@ -20,7 +20,7 @@ std::vector<SimpleItemValueMenu::MenuItem> MainMenu::make_menu_items() {
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
     menu_items.at(MIP_ENGINEERING) = {"E/e     : Engineering menu", 0, ""};
     menu_items.at(MIP_REBOOT)      = {"Ctrl-b  : Reboot flasher (press and hold)", 0, ""};
-    menu_items.at(MIP_DC_RAMP)     = {"M/m     : Ramp menu", 0, ""};
+    menu_items.at(MIP_DC_RAMP)     = {"R/r     : Ramp menu", 0, ""};
     return menu_items;
 }
 
@@ -57,8 +57,8 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
             this->redraw();
         }
         break;
-    case 'M': 
-    case 'm': 
+    case 'R': 
+    case 'r': 
         {
             DCRampMenu menu;
             menu.event_loop();

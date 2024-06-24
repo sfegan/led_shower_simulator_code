@@ -19,6 +19,10 @@ public:
 
 private:
     enum MenuItemPositions {
+        MIP_PHASE,
+        MIP_TIME,
+        MIP_VDAC,
+        MIP_EMPTY_LINE,
         MIP_ROWCOL,
         MIP_SCALE_DAC,
         MIP_TRIM_DAC,
@@ -26,10 +30,6 @@ private:
         MIP_RAMP_HOLD,
         MIP_RAMP_DOWN,
         MIP_ENABLE_RAMP,
-        MIP_CLEAR_RAMP,
-        MIP_PHASE,
-        MIP_TIME,
-        MIP_VDAC,
         MIP_EXIT,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
@@ -44,22 +44,23 @@ private:
     void set_ramp_hold_time_value(bool draw = true);
     void set_ramp_down_time_value(bool draw = true);
     void set_enable_ramp_value(bool draw = true);
-    void set_clear_ramp_value(bool draw = true);
     void set_phase_value(bool draw = true);
     void set_time_value(bool draw = true);
     void set_vdac_value(bool draw = true);
+    void delay();
+    void configure_ramp();
+    void unconfigure_ramp();
 
     int scale_ = 0;
     int offset_ = 0;
     int vdac_ = 0;
-    float ramp_up_time_ = 0;
-    float ramp_hold_time_ = 0;
-    float ramp_down_time_ = 0;
     int ac_ = 0;
     int ar_ = 0;
     int phase_ = 0;
-    bool enable_ramp_ = 0;
-    bool clear_ramp_ = 0;
-    unsigned heartbeat_timer_count_ = 0;
+    float ramp_up_time_ = 3;
+    float ramp_hold_time_ = 5;
+    float ramp_down_time_ = 3;
     float time_ = 0;
+    bool enable_ramp_ = 0;
+    unsigned heartbeat_timer_count_ = 0;
 };

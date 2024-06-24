@@ -58,8 +58,8 @@ void DCRampMenu::set_ramp_down_time_value(bool draw)
 
 void DCRampMenu::set_enable_ramp_value(bool draw) 
 { 
-    menu_items_[MIP_ENABLE_RAMP].value = enable_ramp_ ? "disable" : ">ENABLE<"; 
-    menu_items_[MIP_ENABLE_RAMP].value_style = !enable_ramp_ ? ANSI_INVERT : "";
+    menu_items_[MIP_ENABLE_RAMP].value = enable_ramp_ ? ">ENABLE<" : "disable"; 
+    menu_items_[MIP_ENABLE_RAMP].value_style = enable_ramp_ ? ANSI_INVERT : "";
     if(draw)draw_item_value(MIP_ENABLE_RAMP);
 }
 
@@ -82,27 +82,71 @@ void DCRampMenu::set_vdac_value(bool draw)
     if(draw)draw_item_value(MIP_VDAC);
 }
 
-void DCRampMenu::set_clear_ramp_value(bool draw) 
-{ 
-    menu_items_[MIP_CLEAR_RAMP].value = clear_ramp_ ? ">CLEAR<" : "CLEAR"; 
-    menu_items_[MIP_CLEAR_RAMP].value_style = clear_ramp_ ? ANSI_INVERT : "";
-    if(draw)draw_item_value(MIP_CLEAR_RAMP); 
+void DCRampMenu::delay()
+{
+    //sleep_ms(500);
+    sleep_us(1);
+}
+
+void DCRampMenu::configure_ramp()
+{
+    gpio_put(DAC_EN_PIN, 0);
+    gpio_put(DAC_WR_PIN, 0);
+    delay();
+
+    gpio_put_masked(0x000003 << DAC_SEL_BASE_PIN, 1 << DAC_SEL_BASE_PIN);
+    gpio_put_masked(0x0000FF << VDAC_BASE_PIN, scale_ << VDAC_BASE_PIN);
+    delay();
+    gpio_put(DAC_WR_PIN, 1);
+    delay();
+    gpio_put(DAC_WR_PIN, 0);
+    delay();
+
+    gpio_put_masked(0x000003 << DAC_SEL_BASE_PIN, 3 << DAC_SEL_BASE_PIN);
+    gpio_put_masked(0x0000FF << VDAC_BASE_PIN, offset_ << VDAC_BASE_PIN);
+    delay();
+    gpio_put(DAC_WR_PIN, 1);
+    delay();
+    gpio_put(DAC_WR_PIN, 0);
+    delay();
+
+    gpio_put_masked(0x000003 << DAC_SEL_BASE_PIN, 0 << DAC_SEL_BASE_PIN);
+    gpio_put_masked(0x0000FF << VDAC_BASE_PIN, 0 << VDAC_BASE_PIN);
+    delay();
+    gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
+    gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
+    delay();
+    gpio_put(DAC_EN_PIN, 1);
+    gpio_put(DAC_WR_PIN, 1);
+    gpio_put(TRIG_PIN, 1);
+}
+
+void DCRampMenu::unconfigure_ramp()
+{
+    gpio_put(DAC_EN_PIN, 0);
+    gpio_put(DAC_WR_PIN, 0);
+    delay();
+    gpio_put_masked(0x0000FF << VDAC_BASE_PIN, 0 << VDAC_BASE_PIN);
+    gpio_put_masked(0x00000F << ROW_A_BASE_PIN, 0 << ROW_A_BASE_PIN);
+    gpio_put_masked(0x00000F << COL_A_BASE_PIN, 0 << COL_A_BASE_PIN);
+    delay();
+    gpio_put(TRIG_PIN, 0);
 }
 
 std::vector<SimpleItemValueMenu::MenuItem> DCRampMenu::make_menu_items() 
 {
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
+    menu_items.at(MIP_PHASE)       = {"Phase :", 4, "NONE"};
+    menu_items.at(MIP_TIME)        = {"Time :", 5, "0"};
+    menu_items.at(MIP_VDAC)        = {"Intensity :", 3, "0"};
+
     menu_items.at(MIP_ROWCOL)      = {"Cursors : Change column & row", 3, "A1"};
-    menu_items.at(MIP_SCALE_DAC)   = {"S/s     : Ramp scale", 3, "0"};
-    menu_items.at(MIP_TRIM_DAC)    = {"O/o     : Ramp offset", 3, "0"};
-    menu_items.at(MIP_RAMP_UP)     = {"U/u     : Ramp-up time", 5, "0"};
-    menu_items.at(MIP_RAMP_HOLD)   = {"H/h     : Hold time", 5, "0"};
-    menu_items.at(MIP_RAMP_DOWN)   = {"D/d     : Ramp-down time", 5, "0"};
+    menu_items.at(MIP_SCALE_DAC)   = {"</S/>   : Ramp scale", 3, "0"};
+    menu_items.at(MIP_TRIM_DAC)    = {"-/O/+   : Ramp offset", 3, "0"};
+    menu_items.at(MIP_RAMP_UP)     = {"U/u     : Ramp-up time", 5, "3.000"};
+    menu_items.at(MIP_RAMP_HOLD)   = {"H/h     : Hold time", 5, "5.000"};
+    menu_items.at(MIP_RAMP_DOWN)   = {"D/d     : Ramp-down time", 5, "3.000"};
     menu_items.at(MIP_ENABLE_RAMP) = {"E       : Enable / disable ramp", 8, "disable"};
-    menu_items.at(MIP_CLEAR_RAMP)  = {"C       : Interrupt or/and clear ramp", 7, "CLEAR"};
-    menu_items.at(MIP_PHASE)       = {"        : indicates the phase", 4, "NONE"};
-    menu_items.at(MIP_TIME)        = {"        : indicates the time", 5, "0"};
-    menu_items.at(MIP_VDAC)        = {"        : indicates the intensity", 3, "0"};
     menu_items.at(MIP_EXIT)        = {"q/Q     : Exit menu", 0, ""};
     return menu_items;
 }
@@ -122,45 +166,75 @@ bool DCRampMenu::controller_disconnected(int& return_code)
 bool DCRampMenu::process_key_press(int key, int key_count, int& return_code,
     const std::vector<std::string>& escape_sequence_parameters)
 {
+    if(enable_ramp_ == true) {
+        switch(key) {
+            case 'E':
+                phase_ = 0;
+                time_ = 0;
+                vdac_ = 0;
+                set_phase_value();
+                set_time_value();
+                set_vdac_value();
+                enable_ramp_ = false;
+                set_enable_ramp_value();
+                unconfigure_ramp();
+                break;
+            case 'q':
+            case 'Q':
+                phase_ = 0;
+                time_ = 0;
+                vdac_ = 0;
+                unconfigure_ramp();
+                return_code = 0;
+                return false;
+            default:
+                putchar_raw(7);
+        }
+        return true;
+    }
+
     switch(key) {
-    case 'q':
-    case 'Q':
-        return_code = 0;
-        return false;
-    case KEY_UP:
-        ar_ = std::max(ar_-1, 0);
-        set_rc_value();
-        break;
-    case KEY_DOWN:
-        ar_ = std::min(ar_+1, 15);
-        set_rc_value();
-        break;
-    case KEY_LEFT:
-        ac_ = std::max(ac_-1, 0);
-        set_rc_value();
-        break;
-    case KEY_RIGHT:
-        ac_ = std::min(ac_+1, 15);
-        set_rc_value();
-        break;
-    case KEY_PAGE_UP:
-        ar_ = 0;
-        set_rc_value();
-        break;
-    case KEY_PAGE_DOWN:
-        ar_ = 15;
-        set_rc_value();
-        break;
-    case KEY_HOME:
-        ac_ = 0;
-        set_rc_value();
-        break;
-    case KEY_END:
-        ac_ = 15;
-        set_rc_value();
-        break;
-    case 'S':
-    case 's':
+        case KEY_UP :
+            ar_ = std::max(ar_-1, 0);
+            set_rc_value();
+            break;
+        case KEY_DOWN:
+            ar_ = std::min(ar_+1, 15);
+            set_rc_value();
+            break;
+        case KEY_LEFT:
+            ac_ = std::max(ac_-1, 0);
+            set_rc_value();
+            break;
+        case KEY_RIGHT:
+            ac_ = std::min(ac_+1, 15);
+            set_rc_value();
+            break;
+        case KEY_PAGE_UP:
+            ar_ = 0;
+            set_rc_value();
+            break;
+        case KEY_PAGE_DOWN:
+            ar_ = 15;
+            set_rc_value();
+            break;
+        case KEY_HOME:
+            ac_ = 0;
+            set_rc_value();
+            break;
+        case KEY_END:
+            ac_ = 15;
+            set_rc_value();
+            break;
+        case '<':
+            scale_ = std::max(scale_ - (key_count >= 15 ? 5 : 1), 0);
+            set_scale_value();
+            break;
+        case '>':
+            scale_ = std::min(scale_ + (key_count >= 15 ? 5 : 1), 255);
+            set_scale_value();
+            break;
+        case 'S':
         {
             SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_SCALE_DAC);
             InplaceInputMenu input(rc_getter, 3, VI_NATURAL, true, this);
@@ -177,8 +251,15 @@ bool DCRampMenu::process_key_press(int key, int key_count, int& return_code,
             set_scale_value(true);
         }
         break;
-    case 'O':
-    case 'o':
+        case '-':
+            offset_ = std::max(offset_ - (key_count >= 15 ? 5 : 1), 0);
+            set_offset_value();
+            break;
+        case '+':
+            offset_ = std::min(offset_ + (key_count >= 15 ? 5 : 1), 255);
+            set_offset_value();
+            break;
+        case 'O':
         {
             SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_TRIM_DAC);
             InplaceInputMenu input(rc_getter, 3, VI_NATURAL, true, this);
@@ -195,82 +276,69 @@ bool DCRampMenu::process_key_press(int key, int key_count, int& return_code,
             set_offset_value(true);
         }
         break;
-    case 'U':
-    case 'u':
-        {
-        SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_RAMP_UP);
-            InplaceInputMenu input(rc_getter, 5, VI_POSITIVE_FLOAT, true, this);
-            if(input.event_loop()==1 and input.get_value().size()!=0) {
-                float val = std::stof(input.get_value());
-                if(val>=0.1 and val<=10) {
-                    ramp_up_time_ = val;
+        case 'U':
+        case 'u':
+            {
+            SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_RAMP_UP);
+                InplaceInputMenu input(rc_getter, 5, VI_POSITIVE_FLOAT, true, this);
+                if(input.event_loop()==1 and input.get_value().size()!=0) {
+                    float val = std::stof(input.get_value());
+                    if(val>=0.1 and val<=1000) {
+                        ramp_up_time_ = val;
+                    } else {
+                        input.cancelled();
+                    }
                 } else {
                     input.cancelled();
                 }
-            } else {
-                input.cancelled();
+                set_ramp_up_time_value(true);
             }
-            set_ramp_up_time_value(true);
-        }
-        break;
-    case 'H':
-    case 'h':
-        {
-        SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_RAMP_HOLD);
-            InplaceInputMenu input(rc_getter, 5, VI_POSITIVE_FLOAT, true, this);
-            if(input.event_loop()==1 and input.get_value().size()!=0) {
-                float val = std::stof(input.get_value());
-                if(val>=0 and val<=30) {
-                    ramp_hold_time_ = val;
+            break;
+        case 'H':
+        case 'h':
+            {
+            SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_RAMP_HOLD);
+                InplaceInputMenu input(rc_getter, 5, VI_POSITIVE_FLOAT, true, this);
+                if(input.event_loop()==1 and input.get_value().size()!=0) {
+                    float val = std::stof(input.get_value());
+                    if(val>=0 and val<=1000) {
+                        ramp_hold_time_ = val;
+                    } else {
+                        input.cancelled();
+                    }
                 } else {
                     input.cancelled();
                 }
-            } else {
-                input.cancelled();
+                set_ramp_hold_time_value(true);
             }
-            set_ramp_hold_time_value(true);
-        }
-        break;
-    case 'D':
-    case 'd':
-        {
-        SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_RAMP_DOWN);
-            InplaceInputMenu input(rc_getter, 5, VI_POSITIVE_FLOAT, true, this);
-            if(input.event_loop()==1 and input.get_value().size()!=0) {
-                float val = std::stof(input.get_value());
-                if(val>=0.1 and val<=10) {
-                    ramp_down_time_ = val;
+            break;
+        case 'D':
+        case 'd':
+            {
+            SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_RAMP_DOWN);
+                InplaceInputMenu input(rc_getter, 5, VI_POSITIVE_FLOAT, true, this);
+                if(input.event_loop()==1 and input.get_value().size()!=0) {
+                    float val = std::stof(input.get_value());
+                    if(val>=0.1 and val<=1000) {
+                        ramp_down_time_ = val;
+                    } else {
+                        input.cancelled();
+                    }
                 } else {
                     input.cancelled();
                 }
-            } else {
-                input.cancelled();
+                set_ramp_down_time_value(true);
             }
-            set_ramp_down_time_value(true);
-        }
-        break;
-    case 'E':
-        enable_ramp_ = !enable_ramp_;
-        set_enable_ramp_value();
-        break;
-    case 'C':
-        if (!enable_ramp_){
-            enable_ramp_ = !enable_ramp_;
+            break;
+        case 'E':
+            configure_ramp();
+            enable_ramp_ = true;
             set_enable_ramp_value();
-        }
-        time_ = 0;
-        phase_ = 0;
-        vdac_ = 0;
-        gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
-        set_time_value();
-        set_phase_value();
-        set_vdac_value();
-        clear_ramp_ = !clear_ramp_;
-        set_clear_ramp_value();
-        sleep_ms(100);
-        clear_ramp_ = !clear_ramp_;
-        set_clear_ramp_value();
-        break;
+            break;
+        case 'q':
+        case 'Q':
+            return_code = 0;
+            return false;
     }
 
     return true;
@@ -286,7 +354,7 @@ bool DCRampMenu::process_timer(bool controller_is_connected, int& return_code)
         heartbeat_timer_count_ = 0;
     }
 
-    if (!enable_ramp_){
+    if (enable_ramp_ == true){
         time_ += 1;
         set_time_value();
         if (time_ < ramp_up_time_*100){
@@ -314,7 +382,7 @@ bool DCRampMenu::process_timer(bool controller_is_connected, int& return_code)
         }
 
         if (time_ > ramp_up_time_*100 + ramp_hold_time_*100 + ramp_down_time_*100){
-            enable_ramp_ = !enable_ramp_;
+            enable_ramp_ = false;
             phase_ = 0;
             time_ = 0;
             vdac_ = 0;
@@ -323,6 +391,7 @@ bool DCRampMenu::process_timer(bool controller_is_connected, int& return_code)
             set_phase_value();
             set_time_value();
             set_vdac_value();
+            unconfigure_ramp();
         }
     }
     return true;
