@@ -59,6 +59,32 @@ public:
             int fh, int fw, int fr, int fc, const std::string& title_style = {});
     static bool draw_heart(bool on, int fh, int fw, int fr, int fc);
 
+    template<typename T> static inline bool increase_value_in_range(
+            T& x, T xmax, T dx, bool beep_on_error = true) {
+        if(x < xmax) {
+            x = std::min(x+dx, xmax);
+            return true;
+        } else {
+            if(beep_on_error) {
+                beep();
+            }
+            return false;
+        }
+    }
+
+    template<typename T> static inline bool decrease_value_in_range(
+            T& x, T xmin, T dx, bool beep_on_error = true) {
+        if(x > xmin) {
+            x = std::max(x-dx, xmin);
+            return true;
+        } else {
+            if(beep_on_error) {
+                beep();
+            }
+            return false;
+        }
+    }
+
     static const int FAILED_ESCAPE_SEQUENCE      = 997;
     static const int INCOMPLETE_ESCAPE_SEQUENCE  = 998;
     static const int UNSUPPORTED_ESCAPE_SEQUENCE = 999;

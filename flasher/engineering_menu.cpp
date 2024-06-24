@@ -158,22 +158,22 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
 {
     switch(key) {
     case KEY_UP:
-        ar_ = std::max(ar_-1, 0);
+        decrease_value_in_range(ar_, 0, 1, key_count==1);
         gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_DOWN:
-        ar_ = std::min(ar_+1, 15);
+        increase_value_in_range(ar_, 15, 1, key_count==1);
         gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_LEFT:
-        ac_ = std::max(ac_-1, 0);
+        decrease_value_in_range(ac_, 0, 1, key_count==1);
         gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
     case KEY_RIGHT:
-        ac_ = std::min(ac_+1, 15);
+        increase_value_in_range(ac_, 15, 1, key_count==1);
         gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
         set_rc_value();
         break;
@@ -199,14 +199,12 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
 
     case '>':
-    case '+':
-        vdac_ = std::min(vdac_ + (key_count >= 15 ? 5 : 1), 255);
+        increase_value_in_range(vdac_, 255, (key_count >= 15 ? 5 : 1), key_count==1);
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
     case '<':
-    case '-':
-        vdac_ = std::max(vdac_ - (key_count >= 15 ? 5 : 1), 0);
+        decrease_value_in_range(vdac_, 0, (key_count >= 15 ? 5 : 1), key_count==1);
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         set_vdac_value();
         break;
@@ -303,6 +301,9 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     case 'Q':
         return_code = 0;
         return false;
+
+    default:
+        beep();
     }
 
     return true;

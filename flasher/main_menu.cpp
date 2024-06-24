@@ -84,6 +84,9 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
         WRITEVAL(item_dr_);
         puts("Press ctrl-L to redraw menu...");
         break;
+
+    default:
+        beep();
     }
     return true;
 }
