@@ -160,6 +160,11 @@ void Menu::send_request_screen_size()
     puts_raw_nonl("\0337\033[999;999H\033[6n\0338");
 }
 
+void Menu::beep()
+{
+    putchar_raw(7);
+}
+
 void Menu::draw_box(int fh, int fw, int fr, int fc) {
     curpos(fr+1,fc+1);
     putchar_raw('+');
@@ -316,8 +321,7 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                         break;
                     }
                 } else if(enable_escape_sequences and key == '\033') {
-                    last_key = -1;
-                    key_count = 0;
+                    // Do no reset last_key and key_count here !!
                     escape_sequence.push_back(key);
                 } else if(key == '\014') {
                     last_key = -1;

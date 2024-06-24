@@ -65,6 +65,5 @@ private:
     int spi_dout_ = 0;
     int spi_col_en_ = 0;
     int spi_all_en_ = 0;
-    unsigned led_timer_count_ = 0;
     unsigned heartbeat_timer_count_ = 0;
 };
