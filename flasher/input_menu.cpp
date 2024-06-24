@@ -82,7 +82,7 @@ bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_cod
             value_.push_back(key);
             draw_value();
         } else {
-            putchar_raw(7); // Ctrl-g or BELL
+            beep();
         }
         break;
     }

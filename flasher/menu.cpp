@@ -160,6 +160,11 @@ void Menu::send_request_screen_size()
     puts_raw_nonl("\0337\033[999;999H\033[6n\0338");
 }
 
+void Menu::beep()
+{
+    putchar_raw(7);
+}
+
 void Menu::draw_box(int fh, int fw, int fr, int fc) {
     curpos(fr+1,fc+1);
     putchar_raw('+');

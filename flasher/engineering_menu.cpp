@@ -220,6 +220,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
                     vdac_ = val;
                     gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
                 } else {
+                    beep();
                     input.cancelled();
                 }
             } else {

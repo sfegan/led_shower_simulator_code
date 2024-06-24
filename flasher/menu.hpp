@@ -52,6 +52,7 @@ public:
     static void highlight();
     static void reset_colors();
     static void send_request_screen_size();
+    static void beep();
 
     static void draw_box(int fh, int fw, int fr, int fc);
     static bool draw_title(const std::string& title,
