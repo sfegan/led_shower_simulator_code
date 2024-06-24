@@ -321,8 +321,7 @@ int Menu::event_loop(bool enable_escape_sequences, bool enable_reboot)
                         break;
                     }
                 } else if(enable_escape_sequences and key == '\033') {
-                    last_key = -1;
-                    key_count = 0;
+                    // Do no reset last_key and key_count here !!
                     escape_sequence.push_back(key);
                 } else if(key == '\014') {
                     last_key = -1;
