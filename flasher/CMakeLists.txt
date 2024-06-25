@@ -3,7 +3,7 @@ add_executable(flasher)
 pico_generate_pio_header(flasher ${CMAKE_CURRENT_LIST_DIR}/set_charges.pio)
 
 target_sources(flasher PRIVATE flasher.cpp 
-        menu.cpp input_menu.cpp reboot_menu.cpp
+        menu.cpp menu_event_loop.cpp input_menu.cpp reboot_menu.cpp
         engineering_menu.cpp event_generators.cpp event_dispatcher.cpp 
         keypress_menu.cpp main_menu.cpp)
 
