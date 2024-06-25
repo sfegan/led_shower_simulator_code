@@ -49,8 +49,7 @@ void EngineeringMenu::set_vdac_value(bool draw)
 
 void EngineeringMenu::set_rc_value(bool draw) 
 { 
-    menu_items_[MIP_ROWCOL].value = std::string(1, char('A' + ar_)) 
-        + std::to_string(ac_); 
+    rc_to_value_string(menu_items_[MIP_ROWCOL].value, ar_, ac_);
     if(draw)draw_item_value(MIP_ROWCOL);
 }
 
@@ -137,7 +136,7 @@ std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items()
     menu_items.at(MIP_SPI_ALL_EN)  = {"A       : Toggle SPI all enable", 4, "off"};
 
     menu_items.at(MIP_LED)         = {"L       : Toggle Raspberry-Pi Pico on-board LED", 4, "off"};
-    menu_items.at(MIP_EXIT)        = {"q/Q     : Exit menu", 0, ""};
+    menu_items.at(MIP_EXIT)        = {"q       : Exit menu", 0, ""};
     return menu_items;
 }
 
@@ -156,48 +155,14 @@ bool EngineeringMenu::controller_disconnected(int& return_code)
 bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code,
     const std::vector<std::string>& escape_sequence_parameters)
 {
-    switch(key) {
-    case KEY_UP:
-        decrease_value_in_range(ar_, 0, 1, key_count==1);
-        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
+    if(process_rc_keys(ar_, ac_, key, key_count)) {
+        gpio_put_masked((0x00000F << ROW_A_BASE_PIN)|(0x00000F << COL_A_BASE_PIN),
+                        (ar_ << ROW_A_BASE_PIN)|(ac_ << COL_A_BASE_PIN));
         set_rc_value();
-        break;
-    case KEY_DOWN:
-        increase_value_in_range(ar_, 15, 1, key_count==1);
-        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
-        set_rc_value();
-        break;
-    case KEY_LEFT:
-        decrease_value_in_range(ac_, 0, 1, key_count==1);
-        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
-        set_rc_value();
-        break;
-    case KEY_RIGHT:
-        increase_value_in_range(ac_, 15, 1, key_count==1);
-        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
-        set_rc_value();
-        break;
-    case KEY_PAGE_UP:
-        ar_ = 0;
-        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
-        set_rc_value();
-        break;
-    case KEY_PAGE_DOWN:
-        ar_ = 15;
-        gpio_put_masked(0x00000F << ROW_A_BASE_PIN, ar_ << ROW_A_BASE_PIN);
-        set_rc_value();
-        break;
-    case KEY_HOME:
-        ac_ = 0;
-        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
-        set_rc_value();
-        break;
-    case KEY_END:
-        ac_ = 15;
-        gpio_put_masked(0x00000F << COL_A_BASE_PIN, ac_ << COL_A_BASE_PIN);
-        set_rc_value();
-        break;
+        return true;
+    }
 
+    switch(key) {
     case '>':
         increase_value_in_range(vdac_, 255, (key_count >= 15 ? 5 : 1), key_count==1);
         gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
@@ -303,7 +268,9 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         return false;
 
     default:
-        beep();
+        if(key_count==1) {
+            beep();
+        }
     }
 
     return true;
