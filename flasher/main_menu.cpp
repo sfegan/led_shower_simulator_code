@@ -96,7 +96,9 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
         break;
 
     default:
-        beep();
+        if(key_count==1) {
+            beep();
+        }
     }
     return true;
 }

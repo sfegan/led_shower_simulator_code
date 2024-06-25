@@ -85,6 +85,9 @@ public:
         }
     }
 
+    static bool process_rc_keys(int& ar, int& ac, int key, int key_count);
+    static void rc_to_value_string(std::string& value, int ar, int ac);
+
     static const int FAILED_ESCAPE_SEQUENCE      = 997;
     static const int INCOMPLETE_ESCAPE_SEQUENCE  = 998;
     static const int UNSUPPORTED_ESCAPE_SEQUENCE = 999;
