@@ -51,7 +51,8 @@ bool InplaceInputMenu::controller_disconnected(int& return_code)
 }
 
 bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_code,
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters,
+    absolute_time_t& next_timer)
 {
     switch(key) {
     case KEY_DELETE:
@@ -149,7 +150,8 @@ bool InplaceInputMenu::is_valid(int key)
     return false;
 }
 
-bool InplaceInputMenu::process_timer(bool controller_is_connected, int& return_code)
+bool InplaceInputMenu::process_timer(bool controller_is_connected, int& return_code,
+    absolute_time_t& next_timer)
 {
     if(controller_is_connected) {
         blink_on_ = !blink_on_;
@@ -243,14 +245,17 @@ bool InputMenu::controller_disconnected(int& return_code)
 }
 
 bool InputMenu::process_key_press(int key, int key_count, int& return_code,
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters,
+    absolute_time_t& next_timer)
 {
-    return iim_.process_key_press(key, key_count, return_code, escape_sequence_parameters);
+    return iim_.process_key_press(key, key_count, return_code, escape_sequence_parameters,
+        next_timer);
 }
 
-bool InputMenu::process_timer(bool controller_is_connected, int& return_code)
+bool InputMenu::process_timer(bool controller_is_connected, int& return_code,
+    absolute_time_t& next_timer)
 {
-    return iim_.process_timer(controller_is_connected, return_code);
+    return iim_.process_timer(controller_is_connected, return_code, next_timer);
 }
 
 void InputMenu::redraw()

@@ -44,7 +44,8 @@ bool MainMenu::controller_disconnected(int& return_code)
 }
 
 bool MainMenu::process_key_press(int key, int key_count, int& return_code,
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters, 
+    absolute_time_t& next_timer)
 {
     switch(key) {
     case 'E': 
@@ -93,7 +94,8 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
     return true;
 }
 
-bool MainMenu::process_timer(bool controller_is_connected, int& return_code)
+bool MainMenu::process_timer(bool controller_is_connected, int& return_code,
+    absolute_time_t& next_timer)
 {
     if(controller_is_connected) {
         set_heartbeat(!heartbeat_);

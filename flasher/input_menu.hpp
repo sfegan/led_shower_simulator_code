@@ -17,8 +17,10 @@ public:
     bool controller_connected(int& return_code) override;
     bool controller_disconnected(int& return_code) override;
     bool process_key_press(int key, int key_count, int& return_code,
-        const std::vector<std::string>& escape_sequence_parameters) override;
-    bool process_timer(bool controller_is_connected, int& return_code) override;
+        const std::vector<std::string>& escape_sequence_parameters,
+        absolute_time_t& next_timer) override;
+    bool process_timer(bool controller_is_connected, int& return_code,
+        absolute_time_t& next_timer) override;
     const std::string get_value() const { return value_; }
     void cancelled();
 private:
@@ -48,8 +50,10 @@ public:
     bool controller_connected(int& return_code) override;
     bool controller_disconnected(int& return_code) override;
     bool process_key_press(int key, int key_count, int& return_code,
-        const std::vector<std::string>& escape_sequence_parameters) override;
-    bool process_timer(bool controller_is_connected, int& return_code) override;
+        const std::vector<std::string>& escape_sequence_parameters, 
+        absolute_time_t& next_timer) override;
+    bool process_timer(bool controller_is_connected, int& return_code,
+        absolute_time_t& next_timer) override;
     const std::string get_value() const;
     void cancelled();
     int row() override;

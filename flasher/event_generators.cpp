@@ -70,7 +70,8 @@ bool SingleLEDEventGenerator::controller_disconnected(int& return_code)
 }
 
 bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& return_code, 
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters, 
+    absolute_time_t& next_timer)
 {
     switch(key) {
     case 'F':
@@ -200,7 +201,8 @@ bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& ret
     return true;
 }
 
-bool SingleLEDEventGenerator::process_timer(bool controller_is_connected, int& return_code)
+bool SingleLEDEventGenerator::process_timer(bool controller_is_connected, int& return_code,
+    absolute_time_t& next_timer)
 {
     return true;
 }

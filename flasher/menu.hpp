@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include <pico/time.h>
+
 #define ANSI_INVERT "\033[7m"
 
 class RowAndColumnGetter {
@@ -19,8 +21,10 @@ public:
     virtual bool controller_connected(int& return_code) = 0;
     virtual bool controller_disconnected(int& return_code) = 0;
     virtual bool process_key_press(int key, int key_count, int& return_code,
-        const std::vector<std::string>& escape_sequence_parameters) = 0;
-    virtual bool process_timer(bool controller_is_connected, int& return_code) = 0;
+        const std::vector<std::string>& escape_sequence_parameters,
+        absolute_time_t& next_timer) = 0;
+    virtual bool process_timer(bool controller_is_connected, int& return_code,
+        absolute_time_t& next_timer) = 0;
 
     int event_loop(bool enable_escape_sequences = true, bool enable_reboot = true);
 

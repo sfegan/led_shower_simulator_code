@@ -37,7 +37,8 @@ void RebootMenu::redraw()
 }
 
 bool RebootMenu::process_key_press(int key, int key_count, int& return_code, 
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters,
+    absolute_time_t& next_timer)
 {
     if(key == '\002') {
         ++dots_;
@@ -69,7 +70,8 @@ bool RebootMenu::controller_disconnected(int& return_code)
     return false;
 }
 
-bool RebootMenu::process_timer(bool controller_is_connected, int& return_code)
+bool RebootMenu::process_timer(bool controller_is_connected, int& return_code,
+    absolute_time_t& next_timer)
 {
     if(not controller_is_connected or timer_calls_>100)
     {

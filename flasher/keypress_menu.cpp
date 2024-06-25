@@ -28,7 +28,8 @@ bool KeypressMenu::controller_disconnected(int& return_code)
 }
 
 bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters, 
+    absolute_time_t& next_timer)
 {
     char buffer[80];
     sprintf(buffer, "%c %d \\%o %d",(key<256 and isprint(key))?key:' ',key,key,key_count);
@@ -54,7 +55,8 @@ bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
     return key != '\004';
 }
 
-bool KeypressMenu::process_timer(bool controller_is_connected, int& return_code)
+bool KeypressMenu::process_timer(bool controller_is_connected, int& return_code, 
+    absolute_time_t& next_timer)
 {
     return_code = 0;
     return true;

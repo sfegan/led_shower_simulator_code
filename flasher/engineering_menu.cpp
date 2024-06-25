@@ -153,7 +153,8 @@ bool EngineeringMenu::controller_disconnected(int& return_code)
 }
 
 bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code,
-    const std::vector<std::string>& escape_sequence_parameters)
+    const std::vector<std::string>& escape_sequence_parameters,
+    absolute_time_t& next_timer)
 {
     if(process_rc_keys(ar_, ac_, key, key_count)) {
         gpio_put_masked((0x00000F << ROW_A_BASE_PIN)|(0x00000F << COL_A_BASE_PIN),
@@ -276,7 +277,8 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     return true;
 }
 
-bool EngineeringMenu::process_timer(bool controller_is_connected, int& return_code)
+bool EngineeringMenu::process_timer(bool controller_is_connected, int& return_code, 
+    absolute_time_t& next_timer)
 {
     heartbeat_timer_count_ += 1;
     if(heartbeat_timer_count_ == 100) {
