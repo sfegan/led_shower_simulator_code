@@ -82,7 +82,7 @@ bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_cod
         if(value_.size() < max_value_size_ and is_valid(key)) {
             value_.push_back(key);
             draw_value();
-        } else {
+        } else if(key_count == 1) {
             beep();
         }
         break;
