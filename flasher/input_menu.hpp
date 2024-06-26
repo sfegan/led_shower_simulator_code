@@ -5,7 +5,7 @@
 #include "menu.hpp"
 
 enum ValidInput { VI_STRING, VI_FLOAT, VI_POSITIVE_FLOAT, VI_INTEGER, VI_NATURAL };
-
+ 
 class InplaceInputMenu: public Menu {
 public:
     InplaceInputMenu(RowAndColumnGetter& row_col_getter, unsigned max_value_size, 
@@ -23,6 +23,10 @@ public:
         absolute_time_t& next_timer) override;
     const std::string get_value() const { return value_; }
     void cancelled();
+
+    static bool input_value_in_range(int& value, int value_min, int value_max,
+        SimpleItemValueMenu* base_menu, int iitem, unsigned max_value_size = 0);
+        
 private:
     void draw_value();
     bool is_valid(int key);

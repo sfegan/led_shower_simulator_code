@@ -175,23 +175,10 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         set_vdac_value();
         break;
     case 'S':
-        {
-            SimpleItemValueRowAndColumnGetter rc_getter(this, MIP_VDAC);
-            InplaceInputMenu input(rc_getter, 3, VI_NATURAL, true, this);
-            if(input.event_loop()==1 and input.get_value().size()!=0) {
-                int val = std::stoi(input.get_value());
-                if(val>=0 and val<=255) {
-                    vdac_ = val;
-                    gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
-                } else {
-                    beep();
-                    input.cancelled();
-                }
-            } else {
-                input.cancelled();
-            }
-            set_vdac_value(true);
+        if(InplaceInputMenu::input_value_in_range(vdac_, 0, 255, this, MIP_VDAC, 3)) {
+            gpio_put_masked(0x0000FF << VDAC_BASE_PIN, vdac_ << VDAC_BASE_PIN);
         }
+        set_vdac_value(true);
         break;
     case 'Z':
         vdac_ = 0;
