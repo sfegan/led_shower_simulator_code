@@ -61,6 +61,8 @@ bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_cod
         if(value_.size()) {
             value_.pop_back();
             draw_value();
+        } else if(key_count == 1) {
+            beep();
         }
         break;
     case 21:
@@ -302,7 +304,7 @@ void InputMenu::redraw()
     iim_.redraw();
 }
 
-const std::string InputMenu::get_value() const
+const std::string& InputMenu::get_value() const
 {
     return iim_.get_value();
 }
