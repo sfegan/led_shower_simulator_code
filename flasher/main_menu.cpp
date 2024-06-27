@@ -4,6 +4,7 @@
 #include "keypress_menu.hpp"
 #include "engineering_menu.hpp"
 #include "dc_ramp_menu.hpp"
+#include "spi_test_menu.hpp"
 
 namespace {
     static BuildDate build_date(__DATE__,__TIME__);
@@ -18,9 +19,10 @@ namespace {
 
 std::vector<SimpleItemValueMenu::MenuItem> MainMenu::make_menu_items() {
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
-    menu_items.at(MIP_ENGINEERING) = {"E/e     : Engineering menu", 0, ""};
+    menu_items.at(MIP_ENGINEERING) = {"e       : Engineering menu", 0, ""};
     menu_items.at(MIP_REBOOT)      = {"Ctrl-b  : Reboot flasher (press and hold)", 0, ""};
-    menu_items.at(MIP_DC_RAMP)     = {"R/r     : Ramp menu", 0, ""};
+    menu_items.at(MIP_DC_RAMP)     = {"r       : Ramp menu", 0, ""};
+    menu_items.at(MIP_SPI_TEST)    = {"s       : SPI test menu", 0, ""};
     return menu_items;
 }
 
@@ -46,8 +48,7 @@ bool MainMenu::controller_disconnected(int& return_code)
 }
 
 bool MainMenu::process_key_press(int key, int key_count, int& return_code,
-    const std::vector<std::string>& escape_sequence_parameters, 
-    absolute_time_t& next_timer)
+    const std::vector<std::string>& escape_sequence_parameters, absolute_time_t& next_timer)
 {
     switch(key) {
     case 'E': 
@@ -62,6 +63,14 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
     case 'r': 
         {
             DCRampMenu menu;
+            menu.event_loop();
+            this->redraw();
+        }
+        break;
+    case 'S': 
+    case 's': 
+        {
+            SPItestMenu menu;
             menu.event_loop();
             this->redraw();
         }
@@ -104,8 +113,7 @@ bool MainMenu::process_key_press(int key, int key_count, int& return_code,
     return true;
 }
 
-bool MainMenu::process_timer(bool controller_is_connected, int& return_code,
-    absolute_time_t& next_timer)
+bool MainMenu::process_timer(bool controller_is_connected, int& return_code, absolute_time_t& next_timer)
 {
     if(controller_is_connected) {
         set_heartbeat(!heartbeat_);
