@@ -18,8 +18,11 @@ class Menu {
 public:
     virtual ~Menu();
     virtual void redraw() = 0;
-    virtual bool controller_connected(int& return_code) = 0;
-    virtual bool controller_disconnected(int& return_code) = 0;
+
+    virtual bool event_loop_starting(int& return_code);
+    virtual void event_loop_finishing(int& return_code);
+    virtual bool controller_connected(int& return_code);
+    virtual bool controller_disconnected(int& return_code);
     virtual bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters,
         absolute_time_t& next_timer) = 0;

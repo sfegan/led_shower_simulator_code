@@ -14,19 +14,6 @@ void KeypressMenu::redraw()
     puts("Type some keys (terminate with Ctrl-d)");
 }
 
-bool KeypressMenu::controller_connected(int& return_code)
-{
-    return_code = 0;
-    return true;
-}
-
-
-bool KeypressMenu::controller_disconnected(int& return_code)
-{
-    return_code = 0;
-    return true;
-}
-
 bool KeypressMenu::process_key_press(int key, int key_count, int& return_code,
     const std::vector<std::string>& escape_sequence_parameters, 
     absolute_time_t& next_timer)

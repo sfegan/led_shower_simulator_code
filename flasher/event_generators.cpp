@@ -59,16 +59,6 @@ uint32_t SingleLEDEventGenerator::nextEventPattern(uint32_t* array)
     return 1;
 }
 
-bool SingleLEDEventGenerator::controller_connected(int& return_code)
-{
-    return true;
-}
-
-bool SingleLEDEventGenerator::controller_disconnected(int& return_code)
-{
-    return true;
-}
-
 bool SingleLEDEventGenerator::process_key_press(int key, int key_count, int& return_code, 
     const std::vector<std::string>& escape_sequence_parameters, 
     absolute_time_t& next_timer)

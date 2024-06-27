@@ -60,11 +60,6 @@ bool RebootMenu::process_key_press(int key, int key_count, int& return_code,
     }
 }
 
-bool RebootMenu::controller_connected(int& return_code)
-{
-    return true;
-}
-
 bool RebootMenu::controller_disconnected(int& return_code)
 {
     return false;

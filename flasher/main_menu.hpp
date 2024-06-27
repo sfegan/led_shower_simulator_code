@@ -8,8 +8,6 @@ class MainMenu: public SimpleItemValueMenu {
 public:
     MainMenu();
     virtual ~MainMenu();
-    bool controller_connected(int& return_code) final;
-    bool controller_disconnected(int& return_code) final;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters,
         absolute_time_t& next_timer) final;

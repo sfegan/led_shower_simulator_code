@@ -39,17 +39,6 @@ InplaceInputMenu::~InplaceInputMenu()
     // nothing to see here
 }
 
-bool InplaceInputMenu::controller_connected(int& return_code)
-{
-    return true;
-}
-
-bool InplaceInputMenu::controller_disconnected(int& return_code)
-{
-    return_code = 0;
-    return false;
-}
-
 bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_code,
     const std::vector<std::string>& escape_sequence_parameters,
     absolute_time_t& next_timer)
@@ -268,6 +257,16 @@ InputMenu::InputMenu(unsigned max_value_size, const std::string title,
 InputMenu::~InputMenu()
 {
     // nothing to see here
+}
+
+bool InputMenu::event_loop_starting(int& return_code)
+{
+    return iim_.event_loop_starting(return_code);
+}
+
+void InputMenu::event_loop_finishing(int& return_code)
+{
+    iim_.event_loop_finishing(return_code);
 }
 
 bool InputMenu::controller_connected(int& return_code)

@@ -7,7 +7,6 @@ public:
     RebootMenu(Menu* base_menu = nullptr);
     virtual ~RebootMenu() { }
     void redraw() override;
-    bool controller_connected(int& return_code) override;
     bool controller_disconnected(int& return_code) override;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters,

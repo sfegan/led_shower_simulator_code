@@ -33,16 +33,6 @@ MainMenu::~MainMenu()
     // nothing to see here
 }
 
-bool MainMenu::controller_connected(int& return_code)
-{
-    return true;
-}
-
-bool MainMenu::controller_disconnected(int& return_code)
-{
-    return true;
-}
-
 bool MainMenu::process_key_press(int key, int key_count, int& return_code,
     const std::vector<std::string>& escape_sequence_parameters, 
     absolute_time_t& next_timer)

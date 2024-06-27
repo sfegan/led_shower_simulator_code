@@ -14,8 +14,6 @@ public:
         bool do_highlight=true, Menu* base_menu = nullptr, RowAndColumnGetter* row_col_getter = nullptr);
     virtual ~InplaceInputMenu();
     void redraw() override;
-    bool controller_connected(int& return_code) override;
-    bool controller_disconnected(int& return_code) override;
     bool process_key_press(int key, int key_count, int& return_code,
         const std::vector<std::string>& escape_sequence_parameters,
         absolute_time_t& next_timer) override;
@@ -51,6 +49,8 @@ public:
         const std::string prompt = "Enter value: ", ValidInput valid_input=VI_STRING, Menu* base_menu = nullptr);
     virtual ~InputMenu();
     void redraw() override;
+    bool event_loop_starting(int& return_code) override;
+    void event_loop_finishing(int& return_code) override ;
     bool controller_connected(int& return_code) override;
     bool controller_disconnected(int& return_code) override;
     bool process_key_press(int key, int key_count, int& return_code,

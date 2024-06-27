@@ -32,6 +32,26 @@ Menu::~Menu()
     // nothing to see here
 }
 
+bool Menu::event_loop_starting(int& return_code)
+{
+    return true;
+}
+
+void Menu::event_loop_finishing(int& return_code)
+{
+    // nothing to see here
+}
+
+bool Menu::controller_connected(int& return_code)
+{
+    return true;
+}
+
+bool Menu::controller_disconnected(int& return_code)
+{
+    return true;
+}
+
 int Menu::puts_raw_nonl(const char* s) 
 {
     for (size_t i = 0; s[i]; ++i) {
