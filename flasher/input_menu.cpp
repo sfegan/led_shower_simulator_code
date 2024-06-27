@@ -61,6 +61,8 @@ bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_cod
         if(value_.size()) {
             value_.pop_back();
             draw_value();
+        } else if(key_count == 1) {
+            beep();
         }
         break;
     case 21:
@@ -82,7 +84,7 @@ bool InplaceInputMenu::process_key_press(int key, int key_count, int& return_cod
         if(value_.size() < max_value_size_ and is_valid(key)) {
             value_.push_back(key);
             draw_value();
-        } else {
+        } else if(key_count == 1) {
             beep();
         }
         break;
@@ -212,6 +214,40 @@ void InplaceInputMenu::cancelled()
     sleep_ms(750);
 }
 
+bool InplaceInputMenu::input_value_in_range(int& value, int value_min, int value_max,
+    SimpleItemValueMenu* base_menu, int iitem, unsigned max_value_size)
+{
+    ValidInput vi = value_min<0 ? VI_INTEGER : VI_NATURAL;
+    if(max_value_size == 0) {
+        unsigned value_max_size = 0;
+        for(int v = std::abs(value_max); v>0;  value_max_size+=1, v/=10);
+        if(value_max<0) {
+            value_max_size += 1;
+        }
+        unsigned value_min_size = 0;
+        for(int v = std::abs(value_min); v>0;  value_min_size+=1, v/=10);
+        if(value_min<0) {
+            value_min_size += 1;
+        }
+        max_value_size = std::max(value_min_size, value_max_size);
+    }
+    SimpleItemValueRowAndColumnGetter rc_getter(base_menu, iitem);
+    InplaceInputMenu input(rc_getter, max_value_size, vi, true, base_menu);
+    if(input.event_loop()==1 and input.get_value().size()!=0) {
+        int val = std::stoi(input.get_value());
+        if(val>=value_min and val<=value_max) {
+            value = val;
+            return true;
+        } else {
+            beep();
+            input.cancelled();
+        }
+    } else {
+        input.cancelled();
+    }
+    return false;
+}
+
 InputMenu::InputMenu(unsigned max_value_size, ValidInput valid_input,
         const std::string title, const std::string prompt, Menu* base_menu):
     FramedMenu(title,7,std::max({40U,title.size()+6U,max_value_size+prompt.size()+7U})), 
@@ -268,7 +304,7 @@ void InputMenu::redraw()
     iim_.redraw();
 }
 
-const std::string InputMenu::get_value() const
+const std::string& InputMenu::get_value() const
 {
     return iim_.get_value();
 }
