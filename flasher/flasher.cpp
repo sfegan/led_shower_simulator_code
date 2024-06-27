@@ -83,7 +83,7 @@ int main()
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
 
     uint32_t pin_mask =
-        (0xFFU << VDAC_BASE_PIN) 
+        (0xFFU << VDAC_BASE_PIN)
         | (0xFU << ROW_A_BASE_PIN)
         | (0xFU << COL_A_BASE_PIN)
         | (0x1U << DAC_EN_PIN)

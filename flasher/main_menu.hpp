@@ -17,6 +17,8 @@ public:
 private:
     enum MenuItemPositions {
         MIP_ENGINEERING,
+        MIP_DC_RAMP,
+        MIP_SPI_TEST,
         MIP_REBOOT,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
