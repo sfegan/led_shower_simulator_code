@@ -21,16 +21,9 @@ void SPItestMenu::sync_values()
     ac_      = (all_gpio >> COL_A_BASE_PIN) & 0x00000F;
 }
 
-void SPItestMenu::set_rc_value(bool draw) 
-{ 
-    rc_to_value_string(menu_items_[MIP_ROWCOL].value, ar_, ac_);
-    if(draw)draw_item_value(MIP_ROWCOL);
-}
-
-void SPItestMenu::set_delay_value(bool draw)
-{ 
-    menu_items_[MIP_DELAY].value = std::to_string(delay_); 
-    if(draw)draw_item_value(MIP_DELAY);
+void SPItestMenu::delay()
+{
+    sleep_ms(500);
 }
 
 void SPItestMenu::program_delay()
@@ -53,29 +46,49 @@ void SPItestMenu::program_delay()
     gpio_put(SPI_CLK_PIN, 0);
     delay();
     gpio_put(SPI_DOUT_PIN, 0);
-    menu_delay_ = false;
-    set_menu_delay_value();
 }
 
-void SPItestMenu::set_menu_delay_value(bool draw) 
-{ 
-    menu_items_[MIP_MENU_DELAY].value = menu_delay_ ? ">ENABLE<" : "disable"; 
-    menu_items_[MIP_MENU_DELAY].value_style = menu_delay_ ? ANSI_INVERT : "";
-    if(draw)draw_item_value(MIP_MENU_DELAY);
-}
-
-void SPItestMenu::delay()
+void SPItestMenu::send_trigger()
 {
-    sleep_ms(500);
+    gpio_put(TRIG_PIN, 1);
+    delay();
+    gpio_put(TRIG_PIN, 0);
+}
+
+void SPItestMenu::set_rc_value(bool draw) 
+{ 
+    rc_to_value_string(menu_items_[MIP_ROWCOL].value, ar_, ac_);
+    if(draw)draw_item_value(MIP_ROWCOL);
+}
+
+void SPItestMenu::set_delay_value(bool draw)
+{ 
+    menu_items_[MIP_DELAY].value = std::to_string(delay_); 
+    if(draw)draw_item_value(MIP_DELAY);
+}
+
+void SPItestMenu::set_enable_value(bool draw) 
+{ 
+    menu_items_[MIP_ENABLE].value = enable_ ? ">ENABLE<" : "disable"; 
+    menu_items_[MIP_ENABLE].value_style = enable_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_ENABLE);
+}
+
+void SPItestMenu::set_trigger_value(bool draw) 
+{ 
+    menu_items_[MIP_TRIGGER].value = trigger_ ? ">ON<" : "off";
+    menu_items_[MIP_TRIGGER].value_style = trigger_ ? ANSI_INVERT : ""; 
+    if(draw)draw_item_value(MIP_TRIGGER);
 }
 
 std::vector<SimpleItemValueMenu::MenuItem> SPItestMenu::make_menu_items() 
 {
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
-    menu_items.at(MIP_ROWCOL)     = {"Cursors : Change column & row", 3, "A0"};
-    menu_items.at(MIP_DELAY)      = {"</d/>   : Delay", 3, "0"};
-    menu_items.at(MIP_MENU_DELAY) = {"P       : Program delay", 8, "disable"};
-    menu_items.at(MIP_EXIT)       = {"Q       : Exit menu", 0, ""};
+    menu_items.at(MIP_ROWCOL)  = {"Cursors : Change column & row", 3, "A0"};
+    menu_items.at(MIP_DELAY)   = {"</d/>   : Delay", 3, "0"};
+    menu_items.at(MIP_ENABLE)  = {"P       : Program delay", 8, "disable"};
+    menu_items.at(MIP_TRIGGER) = {"T       : Send trigger", 4, "off"};
+    menu_items.at(MIP_EXIT)    = {"Q       : Exit menu", 0, ""};
     return menu_items;
 }
 
@@ -127,16 +140,23 @@ bool SPItestMenu::process_key_press(int key, int key_count, int& return_code,
             }
             break;
         case 'P':
-            menu_delay_ = true;
-            set_menu_delay_value();
+            enable_ = true;
+            set_enable_value();
             program_delay();
+            enable_ = false;
+            set_enable_value();
             break;
-        break;
+        case 'T':
+            trigger_ = true;
+            set_trigger_value();
+            send_trigger();
+            trigger_ = false;
+            set_trigger_value();
+            break;
         case 'q':
         case 'Q':
             return_code = 0;
             return false;
-
         default:
             beep();
     }
