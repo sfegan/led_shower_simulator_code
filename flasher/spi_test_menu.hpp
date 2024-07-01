@@ -21,6 +21,7 @@ private:
     enum MenuItemPositions {
         MIP_ROWCOL,
         MIP_DELAY,
+        MIP_MENU_DELAY,
         MIP_EXIT,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };
@@ -30,10 +31,15 @@ private:
     void sync_values();
     void set_rc_value(bool draw = true);
     void set_delay_value(bool draw = true);
+    void program_delay();
+    void set_menu_delay_value(bool draw = true);
+    void delay();
 
     int vdac_ = 0;
     int ac_ = 0;
     int ar_ = 0;
     int delay_ = 0;
+    int mask_ = 0;
+    bool menu_delay_ = 0;
     unsigned heartbeat_timer_count_ = 0;
 };
