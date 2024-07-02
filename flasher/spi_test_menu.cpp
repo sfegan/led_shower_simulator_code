@@ -23,7 +23,7 @@ void SPItestMenu::sync_values()
 
 void SPItestMenu::delay()
 {
-    sleep_ms(500);
+    sleep_us(1);
 }
 
 void SPItestMenu::program_delay()
@@ -32,6 +32,8 @@ void SPItestMenu::program_delay()
     int i;
     gpio_put(SPI_CLK_PIN, 1);
     gpio_put(SPI_COL_EN_PIN, 1);
+    gpio_put_masked((0x00000F << ROW_A_BASE_PIN)|(0x00000F << COL_A_BASE_PIN),
+                        (ar_ << ROW_A_BASE_PIN)|(ac_ << COL_A_BASE_PIN));
     delay();
     for(i = 7; i >= 0; i -= 1) {
         gpio_put(SPI_DOUT_PIN, delay_ & mask_ ? 1 : 0);
@@ -42,10 +44,11 @@ void SPItestMenu::program_delay()
         mask_ = mask_ >> 1;
     }
     gpio_put(SPI_COL_EN_PIN, 0);
-    delay();
-    gpio_put(SPI_CLK_PIN, 0);
+    gpio_put_masked((0x00000F << ROW_A_BASE_PIN)|(0x00000F << COL_A_BASE_PIN),
+                        (0 << ROW_A_BASE_PIN)|(0 << COL_A_BASE_PIN));
     delay();
     gpio_put(SPI_DOUT_PIN, 0);
+    gpio_put(SPI_CLK_PIN, 0);
 }
 
 void SPItestMenu::send_trigger()
@@ -81,14 +84,22 @@ void SPItestMenu::set_trigger_value(bool draw)
     if(draw)draw_item_value(MIP_TRIGGER);
 }
 
+void SPItestMenu::set_enable_auto_trigger_value(bool draw) 
+{ 
+    menu_items_[MIP_AUTO_TRIGGER].value = enable_auto_trigger_ ? ">ENABLE<" : "disable"; 
+    menu_items_[MIP_AUTO_TRIGGER].value_style = enable_auto_trigger_ ? ANSI_INVERT : "";
+    if(draw)draw_item_value(MIP_AUTO_TRIGGER);
+}
+
 std::vector<SimpleItemValueMenu::MenuItem> SPItestMenu::make_menu_items() 
 {
     std::vector<SimpleItemValueMenu::MenuItem> menu_items(MIP_NUM_ITEMS);
-    menu_items.at(MIP_ROWCOL)  = {"Cursors : Change column & row", 3, "A0"};
-    menu_items.at(MIP_DELAY)   = {"</d/>   : Delay", 3, "0"};
-    menu_items.at(MIP_ENABLE)  = {"P       : Program delay", 8, "disable"};
-    menu_items.at(MIP_TRIGGER) = {"T       : Send trigger", 4, "off"};
-    menu_items.at(MIP_EXIT)    = {"Q       : Exit menu", 0, ""};
+    menu_items.at(MIP_ROWCOL)       = {"Cursors : Change column & row", 3, "A0"};
+    menu_items.at(MIP_DELAY)        = {"</d/>   : Delay", 3, "0"};
+    menu_items.at(MIP_ENABLE)       = {"P       : Program delay", 8, "disable"};
+    menu_items.at(MIP_TRIGGER)      = {"T       : Send trigger", 4, "off"};
+    menu_items.at(MIP_AUTO_TRIGGER) = {"A       : enable auto-trigger", 8, "disable"};
+    menu_items.at(MIP_EXIT)         = {"Q       : Exit menu", 0, ""};
     return menu_items;
 }
 
@@ -153,6 +164,11 @@ bool SPItestMenu::process_key_press(int key, int key_count, int& return_code,
             trigger_ = false;
             set_trigger_value();
             break;
+        case 'A':
+            time_ = 0;
+            enable_auto_trigger_ = !enable_auto_trigger_;
+            set_enable_auto_trigger_value();
+            break;
         case 'q':
         case 'Q':
             return_code = 0;
@@ -171,6 +187,18 @@ bool SPItestMenu::process_timer(bool controller_is_connected, int& return_code, 
             set_heartbeat(!heartbeat_);
         }
         heartbeat_timer_count_ = 0;
+    }
+
+    if (enable_auto_trigger_ == true){
+        time_ += 1;
+        if (time_ >= 10){
+            trigger_ = true;
+            set_trigger_value();
+            send_trigger();
+            trigger_ = false;
+            set_trigger_value();
+            time_ = 0;
+        }
     }
     return true;
 }
