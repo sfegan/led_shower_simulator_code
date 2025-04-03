@@ -11,6 +11,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        board: [ RP2040, RP2050 ]
 
     steps:
     - uses: actions/checkout@v4
@@ -29,8 +33,9 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DPICO_SDK_PATH=../pico-sdk    \
-              -DCMAKE_BUILD_TYPE=Release     \
+        cmake -DPICO_SDK_PATH=../pico-sdk         \
+              -DCMAKE_BUILD_TYPE=Release          \
+              -DPICO_PLATFORM={{ matrix.board }}  \
               ..
 
     - name: Build
@@ -49,8 +54,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with: 
         files: build/flasher/flasher.uf2
-        name: "Build of RP2040 flasher code"
-        tag_name: "RP2040"
+        name: "Build of {{ matrix.board }} flasher code"
+        tag_name: "{{ matrix.board }}"
         body: Automated build of Flasher code
         prerelease: true
   
