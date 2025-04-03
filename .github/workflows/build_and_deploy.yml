@@ -33,9 +33,9 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DPICO_SDK_PATH=../pico-sdk         \
-              -DCMAKE_BUILD_TYPE=Release          \
-              -DPICO_PLATFORM={{ matrix.board }}  \
+        cmake -DPICO_SDK_PATH=../pico-sdk           \
+              -DCMAKE_BUILD_TYPE=Release            \
+              -DPICO_PLATFORM=${{ matrix.board }}   \
               ..
 
     - name: Build
@@ -47,15 +47,15 @@ jobs:
     - name: Archive flasher.uf2
       uses: actions/upload-artifact@v4
       with:
-        name: flasher-uf2
+        name: flasher-uf2-{{ matrix.board }}
         path: build/flasher/flasher.uf2
 
     - name: Publish UF2 file as Github release
       uses: softprops/action-gh-release@v2
       with: 
         files: build/flasher/flasher.uf2
-        name: "Build of {{ matrix.board }} flasher code"
-        tag_name: "{{ matrix.board }}"
+        name: "Build of ${{ matrix.board }} flasher code"
+        tag_name: "${{ matrix.board }}"
         body: Automated build of Flasher code
         prerelease: true
   
