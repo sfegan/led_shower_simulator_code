@@ -59,7 +59,7 @@ BuildDate::BuildDate(const char* date, const char* time)
         break;
 
     }
-    build_date[8] = date[4];
+    build_date[8] = (date[4]==' ') ? '0' : date[4];
     build_date[9] = date[5];
     build_date[11] = time[0];
     build_date[12] = time[1];
