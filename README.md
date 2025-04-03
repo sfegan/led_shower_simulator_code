@@ -17,7 +17,7 @@ You can build the UF2 package to install on the Rasperberry Pi Pico using the in
 1. mkdir build
 2. cd build
 3. export PICO_SDK_PATH=/Users/sfegan/RaspberryPi/pico/pico-sdk
-4. cmake -DPICO_PLATFORM=2350 ..
+4. cmake -DPICO_PLATFORM=rp2350 ..
 5. cd flasher
 6. make -j4
 7. Hold button on PICO and connect USB power until device mounted in mass-storage mode
