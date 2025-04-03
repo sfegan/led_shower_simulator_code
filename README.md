@@ -21,5 +21,5 @@ You can build the UF2 package to install on the Rasperberry Pi Pico using the in
 5. cd flasher
 6. make -j4
 7. Hold button on PICO and connect USB power until device mounted in mass-storage mode
-8. cp flasher.uf2 /Volumes/RPI-RP2350
+8. cp flasher.uf2 /Volumes/RP2350
 9. screen /dev/tty.usbmodem141101
