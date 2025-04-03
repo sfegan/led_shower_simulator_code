@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        board: [ rp2040, rp2050 ]
+        board: [ rp2040, rp2350 ]
 
     steps:
     - uses: actions/checkout@v4
