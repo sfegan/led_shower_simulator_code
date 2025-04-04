@@ -254,7 +254,7 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
             menu_items_[MIP_TEMPERATURE].value = std::to_string(temperature); 
             draw_item_value(MIP_TEMPERATURE); 
         }
-        break
+        break;
     case 'q':
     case 'Q':
         return_code = 0;
