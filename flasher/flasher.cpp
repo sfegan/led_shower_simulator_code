@@ -6,6 +6,7 @@
 #include <cctype>
 
 #include <pico/stdlib.h>
+#include <hardware/adc.h>
 
 #include "flasher.hpp"
 #include "menu.hpp"
@@ -81,6 +82,8 @@ int main()
     gpio_init(PICO_DEFAULT_LED_PIN);
     gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
+
+    adc_init();
 
     uint32_t pin_mask =
         (0xFFU << VDAC_BASE_PIN)

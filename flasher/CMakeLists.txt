@@ -9,7 +9,7 @@ target_sources(flasher PRIVATE flasher.cpp
 
 # pull in common dependencies
 target_link_libraries(flasher PRIVATE
-        pico_stdlib pico_multicore pico_sync hardware_pio)
+        pico_stdlib pico_multicore pico_sync hardware_pio hardware_adc)
 target_compile_definitions(flasher PRIVATE)
 
 # create map/bin/hex file etc.

@@ -30,6 +30,7 @@ private:
         MIP_SPI_COL_EN,
         MIP_SPI_ALL_EN,
         MIP_LED,
+        MIP_TEMPERATURE,
         MIP_EXIT,
         MIP_NUM_ITEMS // MUST BE LAST ITEM IN LIST
     };

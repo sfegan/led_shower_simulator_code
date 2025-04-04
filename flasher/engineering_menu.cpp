@@ -1,3 +1,7 @@
+#include <cmath>
+
+#include <hardware/adc.h>
+
 #include "flasher.hpp"
 #include "menu.hpp"
 #include "input_menu.hpp"
@@ -136,6 +140,8 @@ std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items()
     menu_items.at(MIP_SPI_ALL_EN)  = {"A       : Toggle SPI all enable", 4, "off"};
 
     menu_items.at(MIP_LED)         = {"L       : Toggle Raspberry-Pi Pico on-board LED", 4, "off"};
+    menu_items.at(MIP_TEMPERATURE) = {"m       : Measure Pico on-board temperature", 4, ""};
+
     menu_items.at(MIP_EXIT)        = {"q       : Exit menu", 0, ""};
     return menu_items;
 }
@@ -237,7 +243,16 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         gpio_put(PICO_DEFAULT_LED_PIN, led_int_ ? 1 : 0);
         set_led_value();
         break;
-
+    case 'm':
+        {
+            const float conversion_factor = 3.3f / (1 << 12);
+            adc_select_input(4);
+            uint16_t result = adc_read();
+            float voltage = result * conversion_factor;
+            float temperature = floor((27.0 - (voltage - 0.706f) / 0.001721f) * 10 + 0.5) * 0.1;
+            menu_items_[MIP_TEMPERATURE].value = std::to_string(temperature); 
+            draw_item_value(MIP_TEMPERATURE); 
+        }
     case 'q':
     case 'Q':
         return_code = 0;
