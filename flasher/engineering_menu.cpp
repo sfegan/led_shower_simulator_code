@@ -249,10 +249,12 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
             adc_select_input(4);
             uint16_t result = adc_read();
             float voltage = result * conversion_factor;
-            float temperature = floor((27.0 - (voltage - 0.706f) / 0.001721f) * 10 + 0.5) * 0.1;
+            float temperature = 27.0f - (voltage - 0.706f)/0.001721f;
+            // float temperature = floor((27.0 - (voltage - 0.706f) / 0.001721f) * 10 + 0.5) * 0.1;
             menu_items_[MIP_TEMPERATURE].value = std::to_string(temperature); 
             draw_item_value(MIP_TEMPERATURE); 
         }
+        break
     case 'q':
     case 'Q':
         return_code = 0;
