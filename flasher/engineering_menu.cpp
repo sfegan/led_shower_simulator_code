@@ -248,10 +248,10 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
             const float conversion_factor = 3.3f / (1 << 12);
             adc_select_input(4);
             uint16_t result = adc_read();
-            float voltage = result * conversion_factor;
-            float temperature = 27.0f - (voltage - 0.706f)/0.001721f;
+            // float voltage = result * conversion_factor;
+            // float temperature = 27.0f - (voltage - 0.706f)/0.001721f;
             // float temperature = floor((27.0 - (voltage - 0.706f) / 0.001721f) * 10 + 0.5) * 0.1;
-            menu_items_[MIP_TEMPERATURE].value = std::to_string(temperature); 
+            menu_items_[MIP_TEMPERATURE].value = std::to_string(result); 
             draw_item_value(MIP_TEMPERATURE); 
         }
         break;
