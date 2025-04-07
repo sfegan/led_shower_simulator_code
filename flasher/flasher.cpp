@@ -84,6 +84,8 @@ int main()
     gpio_put(PICO_DEFAULT_LED_PIN, 1);
 
     adc_init();
+    adc_set_temp_sensor_enabled(true);
+    adc_select_input(4);
 
     uint32_t pin_mask =
         (0xFFU << VDAC_BASE_PIN)

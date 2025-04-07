@@ -246,7 +246,6 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
     case 'm':
         {
             const float conversion_factor = 3.3f / (1 << 12);
-            adc_select_input(4);
             uint16_t result = adc_read();
             // float voltage = result * conversion_factor;
             // float temperature = 27.0f - (voltage - 0.706f)/0.001721f;
