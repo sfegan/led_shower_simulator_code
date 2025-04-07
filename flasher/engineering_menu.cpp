@@ -245,12 +245,9 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         break;
     case 'm':
         {
-            const float conversion_factor = 3.3f / (1 << 12);
             uint16_t result = adc_read();
-            // float voltage = result * conversion_factor;
-            // float temperature = 27.0f - (voltage - 0.706f)/0.001721f;
-            // float temperature = floor((27.0 - (voltage - 0.706f) / 0.001721f) * 10 + 0.5) * 0.1;
-            menu_items_[MIP_TEMPERATURE].value = std::to_string(result); 
+            float temp = floor(4372.3f - float(result) * 4.68137f) * 0.1f;
+            menu_items_[MIP_TEMPERATURE].value = std::to_string(temp); 
             draw_item_value(MIP_TEMPERATURE); 
         }
         break;
