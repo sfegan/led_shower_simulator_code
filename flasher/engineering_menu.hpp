@@ -50,7 +50,8 @@ private:
     void set_spi_dout_value(bool draw = true);
     void set_spi_col_en_value(bool draw = true);
     void set_spi_all_en_value(bool draw = true);
-   
+    void set_measured_temp_value(bool draw = true);
+
     int vdac_ = 0;
     int ac_ = 0;
     int ar_ = 0;
@@ -64,4 +65,5 @@ private:
     int spi_col_en_ = 0;
     int spi_all_en_ = 0;
     unsigned heartbeat_timer_count_ = 0;
+    bool measure_temp_ = false;
 };

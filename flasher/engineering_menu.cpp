@@ -43,6 +43,7 @@ void EngineeringMenu::sync_values()
     set_spi_dout_value(false);
     set_spi_col_en_value(false);
     set_spi_all_en_value(false);
+    set_measured_temp_value(false);
 }
 
 void EngineeringMenu::set_vdac_value(bool draw) 
@@ -118,6 +119,18 @@ void EngineeringMenu::set_spi_all_en_value(bool draw)
     menu_items_[MIP_SPI_ALL_EN].value = spi_all_en_ ? ">ON<" : "off"; 
     menu_items_[MIP_SPI_ALL_EN].value_style = spi_all_en_ ? ANSI_INVERT : "";
     if(draw)draw_item_value(MIP_SPI_ALL_EN); 
+}
+
+void EngineeringMenu::set_measured_temp_value(bool draw) 
+{ 
+    if(measure_temp_) {
+        uint16_t result = adc_read();
+        float temp = floor(4372.3f - float(result) * 4.68137f) * 0.1f;
+        menu_items_[MIP_TEMPERATURE].value = std::to_string(temp); 
+    } else {
+       menu_items_[MIP_TEMPERATURE].value = "off"; 
+    }
+    if(draw)draw_item_value(MIP_TEMPERATURE); 
 }
 
 std::vector<SimpleItemValueMenu::MenuItem> EngineeringMenu::make_menu_items() 
@@ -244,12 +257,8 @@ bool EngineeringMenu::process_key_press(int key, int key_count, int& return_code
         set_led_value();
         break;
     case 'm':
-        {
-            uint16_t result = adc_read();
-            float temp = floor(4372.3f - float(result) * 4.68137f) * 0.1f;
-            menu_items_[MIP_TEMPERATURE].value = std::to_string(temp); 
-            draw_item_value(MIP_TEMPERATURE); 
-        }
+        measure_temp_ = !measure_temp_;
+        set_measured_temp_value(true);
         break;
     case 'q':
     case 'Q':
@@ -272,6 +281,9 @@ bool EngineeringMenu::process_timer(bool controller_is_connected, int& return_co
     if(heartbeat_timer_count_ == 100) {
         if(controller_is_connected) {
             set_heartbeat(!heartbeat_);
+            if(measure_temp_) {
+                set_measured_temp_value(true);
+            }
         }
         heartbeat_timer_count_ = 0;
     }
