@@ -124,8 +124,11 @@ void EngineeringMenu::set_spi_all_en_value(bool draw)
 void EngineeringMenu::set_measured_temp_value(bool draw) 
 { 
     if(measure_temp_) {
+        constexpr float ADC_REF_VOLTAGE = 3.3f;
+        constexpr float C0 = (27.0f + 0.706/0.001721f)*10.0f;
+        constexpr float C1 = -ADC_REF_VOLTAGE/4096.0f/0.001721f*10.0f;
         uint16_t result = adc_read();
-        float temp = floor(4372.3f - float(result) * 4.68137f) * 0.1f;
+        float temp = floor(C0 - float(result) * C1) * 0.1f;
         menu_items_[MIP_TEMPERATURE].value = std::to_string(temp); 
     } else {
        menu_items_[MIP_TEMPERATURE].value = "off"; 
