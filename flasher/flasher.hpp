@@ -14,8 +14,3 @@ enum Pins { VDAC_BASE_PIN       = 0,
             SPARE_PIN           = 22,
             DAC_WR_PIN          = 26,
             DAC_SEL_BASE_PIN    = 27 };
-
-struct BuildDate {
-    BuildDate(const char* date, const char* time);
-    static std::string latest_build_date;
-};

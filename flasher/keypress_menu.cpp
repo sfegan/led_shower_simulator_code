@@ -1,6 +1,6 @@
 #include <cstdio>
 
-#include "flasher.hpp"
+#include "build_date.hpp"
 #include "keypress_menu.hpp"
 
 namespace {
